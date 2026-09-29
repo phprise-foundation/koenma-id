@@ -1,0 +1,140 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phprise\KoenmaID\Tests\Integration\Api;
+
+use Phprise\KoenmaID\Tests\Factory\TestDataFactory;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+final class ProjectApiTest extends WebTestCase
+{
+    private KernelBrowser $client;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+    }
+
+    public function testCreatesProjectUnderPartner(): void
+    {
+        $partner = $this->factory()->createPartner('proj-create');
+
+        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/projects', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode([
+            'name' => 'Project Alpha',
+            'description' => 'First project',
+        ], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(201);
+        $payload = $this->decode();
+        self::assertSame('Project Alpha', $payload['name']);
+        self::assertSame('First project', $payload['description']);
+        self::assertSame($partner->id()->toString(), $payload['partnerId']);
+        self::assertArrayHasKey('id', $payload);
+    }
+
+    public function testRejectsInvalidProjectPayload(): void
+    {
+        $partner = $this->factory()->createPartner('proj-invalid');
+
+        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/projects', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode(['name' => ''], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    public function testReturnsNotFoundForUnknownPartner(): void
+    {
+        $this->client->request('POST', '/partners/prt_01M2BW4T17D5EG03XCJ8XG0ARR/projects', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode(['name' => 'Orphan'], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testListsProjectsOfPartner(): void
+    {
+        $partner = $this->factory()->createPartner('proj-list');
+        $this->factory()->createProject($partner, 'list-a');
+        $this->factory()->createProject($partner, 'list-b');
+
+        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/projects');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(2, $payload);
+    }
+
+    public function testListsOnlyProjectsOfGivenPartner(): void
+    {
+        $partner = $this->factory()->createPartner('proj-scope-a');
+        $other = $this->factory()->createPartner('proj-scope-b');
+        $this->factory()->createProject($partner, 'scope-a');
+        $this->factory()->createProject($other, 'scope-b');
+
+        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/projects');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(1, $payload);
+        self::assertSame($partner->id()->toString(), $payload[0]['partnerId']);
+    }
+
+    public function testGetsProjectById(): void
+    {
+        $partner = $this->factory()->createPartner('proj-get');
+        $project = $this->factory()->createProject($partner, 'get');
+
+        $this->client->request('GET', '/projects/'.$project->id()->toString());
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decode();
+        self::assertSame($project->id()->toString(), $payload['id']);
+    }
+
+    public function testPatchesProject(): void
+    {
+        $partner = $this->factory()->createPartner('proj-patch');
+        $project = $this->factory()->createProject($partner, 'patch');
+
+        $this->client->request('PATCH', '/projects/'.$project->id()->toString(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+        ], json_encode(['name' => 'Renamed Project'], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decode();
+        self::assertSame('Renamed Project', $payload['name']);
+    }
+
+    public function testReturnsNotFoundForUnknownProject(): void
+    {
+        $this->client->request('GET', '/projects/prj_01M2BW4T17D5EG03XCJ8XG0ARR');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    private function factory(): TestDataFactory
+    {
+        return static::getContainer()->get(TestDataFactory::class);
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function decode(): array
+    {
+        return json_decode((string) $this->client->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function decodeCollection(): array
+    {
+        return $this->decode()['member'];
+    }
+}

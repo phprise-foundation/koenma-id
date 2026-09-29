@@ -1,0 +1,30 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+            algorithm: argon2id
+
+    providers:
+        app_user_provider:
+            entity:
+                class: Phprise\KoenmaID\Entity\User
+                property: username
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        main:
+            pattern: ^/
+            stateless: true
+            security: false
+
+    access_control:
+        - { path: ^/, roles: PUBLIC_ACCESS }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: argon2id
+                time_cost: 3
+                memory_cost: 10
