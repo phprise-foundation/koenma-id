@@ -860,4 +860,4 @@ O ambiente de teste usa o banco `app_test` com rollback automático entre testes
 
 ## Licença
 
-Proprietário — PHPRise.
+MIT - livre para uso.
