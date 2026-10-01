@@ -1,6 +1,6 @@
 # Estado do Projeto — Koenma ID
 
-> **Atualizado em:** 2026-09-14
+> **Atualizado em:** 2026-09-30
 > **Branch:** `1.x`
 > **Fase atual:** Fase 1 — Entidades + Rotas de Token (em andamento)
 
@@ -99,6 +99,22 @@ vai contra o combinado.
 - [x] **API Key em texto puro exibida uma única vez na criação** (`ApiKeyOutput::$key`, grupo `api_key:post`); nunca armazenada, nunca recuperável
 - [x] **Formato da API Key**: `sk_` + 32 caracteres alfanuméricos (`/^sk_[A-Za-z0-9]{32}$/`)
 - [x] **Documentação OpenAPI em inglês**: `description` por `ApiResource`, `summary`+`description` por operação, doc comments nos campos dos DTOs
+- [x] **Governança de documentos**: `AGENTS.md` reescrito com a doutrina (`docs/PHILOSOPHY.md`), ordem de prioridade dos documentos, fluxo obrigatório (ler antes / atualizar depois) e a regra de escrever arquivos via script
+- [x] **`docs/ARCHITECTURE.md`** criado: mapa de camadas, fluxo de requisição, estrutura de pastas, onde mexer para cada tipo de mudança
+- [x] **`docs/GITFLOW.md`** preenchido: fluxo enxuto (branch curta → commit conventional → PR → merge `-d` → tag semver → release → `bin/publish.sh`)
+- [x] **`CONTRIBUTING.md`** criado: visão geral da filosofia + processo de contribuição
+- [x] **`README.md`** atualizado: seção "Filosofia e documentação" apontando PHILOSOPHY/GUIDE/GITFLOW/CONTRIBUTING
+- [x] **Segurança**: `JWT_PASSPHRASE` real removido do `.env` (rastreado) e movido para `.env.local` (git-ignored); `.gitignore` reorganizado
+- [x] **Fase 1.5 / Etapa A — Modelo de chave e cabeçalho** (concluída):
+  - `ApiKeyOutput::$key` renomeado para `$securityKey` (grupo `api_key:post`)
+  - `ValueObject\SecurityKey`: valida formato `sk_[A-Za-z0-9]{32}` e expõe `hash()` (sha256)
+  - `Service\Security\SecurityScope`: value object do escopo (`master` / `partner` / `anonymous`)
+  - `Service\Security\SecurityKeyContext`: resolve o header `X-Security-Key` (hash + não expirada) e cacheia por request
+  - `Service\Security\MasterSecurityKey`: lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals`
+  - `.env` ganhou `MASTER_SECURITY_KEY=` (default vazio); `.env.test` ganhou `MASTER_SECURITY_KEY` e `JWT_PASSPHRASE`
+  - `SecurityKeyContext` público em `when@test` (para testes)
+  - Testes: `SecurityKeyTest` (5) + `SecurityKeyContextTest` (5)
+  - Suíte total: **59 testes, 121 assertions**
 - [x] **Endpoints de Token documentados individualmente** (não mais "Creates a Token resource." genérico)
 - [x] **Rotas na raiz** (sem prefixo `/api`): `/partners`, `/projects`, `/token/*`, `/docs`
 - [x] **Autenticação desabilitada** (firewall `main` `security: false`; `access_control` `PUBLIC_ACCESS`)

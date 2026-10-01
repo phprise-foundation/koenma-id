@@ -11,6 +11,28 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- **Governança de documentos**:
+  - `AGENTS.md` reescrito: a doutrina (`docs/PHILOSOPHY.md`) como regra inegociável, ordem de prioridade dos documentos, fluxo obrigatório (ler antes de iniciar / atualizar ao finalizar) e a regra de escrever arquivos via script (`python`/`sh`)
+  - `docs/ARCHITECTURE.md`: mapa de camadas, fluxo de requisição, estrutura de pastas e guia "onde mexer para cada tipo de mudança"
+  - `docs/GITFLOW.md`: fluxo enxuto (branch curta → commit conventional → PR → merge `-d` → tag semver → release → `bin/publish.sh`)
+  - `CONTRIBUTING.md`: visão geral da filosofia + processo de contribuição
+  - `README.md`: seção "Filosofia e documentação" apontando PHILOSOPHY/GUIDE/GITFLOW/CONTRIBUTING
+- **Fase 1.5 / Etapa A — Modelo de chave e cabeçalho**:
+  - `ApiKeyOutput::$key` renomeado para `$securityKey` (a chave em texto puro só aparece na criação)
+  - `ValueObject\SecurityKey`: valida o formato `sk_[A-Za-z0-9]{32}` e expõe `hash()`
+  - `Service\Security\SecurityScope`: escopo da requisição (`master` / `partner` / `anonymous`)
+  - `Service\Security\SecurityKeyContext`: resolve o header `X-Security-Key` (hash + não expirada), cacheado por request
+  - `Service\Security\MasterSecurityKey`: lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals`
+  - `.env` ganhou `MASTER_SECURITY_KEY=` (default vazio); `.env.test` ganhou `MASTER_SECURITY_KEY` e `JWT_PASSPHRASE`
+  - Testes: `SecurityKeyTest` + `SecurityKeyContextTest`
+
+### Segurança
+
+- **`JWT_PASSPHRASE` real removido do `.env`** (que estava rastreado pelo git) e movido para `.env.local` (git-ignored); `.env` agora contém apenas defaults
+- `.gitignore` reorganizado com bloco `###> local overrides ###` cobrindo `/.env`, `/.env.local`, `/.env.*.local`, `.aider*`
+- `image.png` movido para `docs/assets/koenma-jr.png`; README atualizado
+
+
 - **API Key em texto puro exibida uma única vez na criação**:
   - `ApiKeyIssuer::issue()` agora retorna `IssuedApiKey` (entidade + chave em texto puro)
   - `ApiKeyOutput` ganhou o campo `key` (grupo `api_key:post`), preenchido por `ApiKeyOutput::fromIssued()`

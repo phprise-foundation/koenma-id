@@ -8,6 +8,67 @@ Serviço de identidade e autenticação do ecossistema **PHPRise**. Atua como o
 
 ---
 
+## Filosofia e documentação
+
+Este projeto é guiado pelo **OTAKU Manifesto** — a nossa doutrina. Ele orienta
+tanto desenvolvedores humanos quanto agentes de IA, e **toda contribuição precisa
+estar alinhada com ele**. Antes de usar, estender ou contribuir com o Koenma ID,
+leia:
+
+| Documento | O que é |
+|---|---|
+| [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) | **A doutrina.** O documento mais importante do projeto. |
+| [`docs/GUIDE.md`](docs/GUIDE.md) | Exemplos práticos de aplicação da filosofia. |
+| [`docs/GITFLOW.md`](docs/GITFLOW.md) | Guia dos fluxos Git (branch, commit, PR, release). |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Como contribuir, com uma visão geral da filosofia. |
+
+> **Estes documentos devem ser seguidos.** Em caso de conflito entre uma
+> instrução pontual e a filosofia, **a filosofia vence**.
+
+### O OTAKU Manifesto
+
+A filosofia se chama **Fluid Structure Design** e se apoia em cinco pilares, um
+para cada letra do acrônimo **OTAKU**:
+
+- **O — Own your Discipline.** Restrição como libertação. As **9 regras do Object
+  Calisthenics** são obrigatórias: um nível de indentação por método, sem `else`,
+  envolver primitivos e strings, coleções de primeira classe, um ponto por linha,
+  não abreviar, entidades pequenas (50 linhas por classe, 10 arquivos por pacote),
+  no máximo 2 variáveis de instância, e sem getters/setters/propriedades públicas.
+- **T — Tools for Composition.** Modularidade à la Unix: cada componente faz uma
+  coisa e a faz bem. O fluxo da aplicação é um *data pipe* — a entrada entra por
+  adaptadores, atravessa o núcleo e sai, mantendo a lógica isolada dos efeitos
+  colaterais.
+- **A — Armor the Core.** Soberania do domínio. A lógica de negócio é o ativo mais
+  valioso e é protegida por **Clean Architecture**: as dependências apontam apenas
+  para dentro, em direção ao domínio. O "coração" (casos de uso e entidades) nunca
+  conhece frameworks, bancos ou APIs externas.
+- **K — Keep Infrastructure Silent.** Infraestrutura é detalhe. Banco, mailer e
+  broker são secundários; o acesso a dados é tratado como uma coleção em memória
+  (**Repository Pattern**). As entidades de domínio são **POPOs**, ignorantes de
+  como são salvas ou transmitidas.
+- **U — Universal Language & Contracts.** Linguagem ubíqua (DDD) solidificada em
+  **contratos design-first (OpenAPI)**. O contrato é a promessa técnica imutável
+  entre sistemas. Se o código não lê como o especialista de negócio fala, ou se o
+  contrato é contornado, o sistema está quebrado.
+
+### As três formas de repositório
+
+Para garantir modularidade na origem, todo repositório se encaixa em um destes
+arquétipos:
+
+- **Atom** — a menor unidade de granularidade. Estrutura plana (um nível dentro de
+  `src/`), sem subdivisões, cumprindo um único contrato.
+- **Assembly** — ponto de conexão/meta-pacote. Sem código em `src/`; apenas
+  orquestra a união de Atoms via `composer.json`.
+- **Core** — o sistema vivo. Segue Clean Architecture e DDD, e deve ser *lean*:
+  tudo que é genérico é movido para Atoms; o Core guarda só o que é único do
+  negócio (entidades, casos de uso, adaptadores específicos).
+
+> O **Koenma ID** é um repositório **Core**.
+
+---
+
 ## Sumário
 
 1. [Visão geral](#1-visão-geral)

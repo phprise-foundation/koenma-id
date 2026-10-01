@@ -1,9 +1,110 @@
 # AGENTS.md
 
-> **Antes de começar:** leia [`docs/STATE.md`](docs/STATE.md) para saber onde o
-> projeto está, o que já foi decidido e quais são os próximos passos. Para o que
-> ainda não começou, veja [`docs/ROADMAP.md`](docs/ROADMAP.md). O histórico de
-> mudanças fica em [`CHANGELOG.md`](CHANGELOG.md).
+> **Leia isto antes de qualquer coisa.** Este documento define como agentes
+> (humanos ou IA) devem se comportar neste repositório. Ele não substitui a
+> filosofia do projeto — ele aponta para ela.
+
+---
+
+## 0. A doutrina: `docs/PHILOSOPHY.md`
+
+O documento **mais importante** deste projeto é [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md).
+Ele é a nossa **doutrina**: orienta tanto desenvolvedores humanos quanto agentes
+de IA, e define os princípios que guiam todo o desenvolvimento.
+
+**Regra inegociável:** antes de propor ou implementar qualquer mudança, verifique
+se ela **não viola nenhuma regra da filosofia**. Se houver conflito entre uma
+instrução pontual e a filosofia, **a filosofia vence** — e o conflito deve ser
+trazido para discussão, não resolvido silenciosamente.
+
+Se você não tem certeza de como aplicar uma regra da filosofia a um caso
+concreto, consulte [`docs/GUIDE.md`](docs/GUIDE.md). Se o caso não estiver lá,
+**pare e converse** com o mantenedor antes de decidir; depois, adicione o
+exemplo ao GUIDE para que a próxima pessoa não precise perguntar de novo.
+
+---
+
+## 1. Documentos do projeto
+
+### Ordem de prioridade
+
+Quando dois documentos divergirem, o de menor número vence:
+
+1. **`docs/PHILOSOPHY.md`** — a doutrina. Orienta humanos e agentes.
+2. **`docs/ROADMAP.md`**, **`docs/STATE.md`**, **`docs/ARCHITECTURE.md`** — documentos de estado.
+3. **`README.md`** — documentação do produto para quem consome.
+4. **`docs/GUIDE.md`**, **`docs/GITFLOW.md`** — documentos auxiliares.
+
+### O que cada um é
+
+| Documento | Papel | Quando consultar | Quando atualizar |
+|---|---|---|---|
+| `docs/PHILOSOPHY.md` | Doutrina do projeto | **Sempre**, antes de qualquer mudança | Quando a doutrina evoluir (raro, com discussão) |
+| `docs/STATE.md` | Onde paramos, o que foi decidido, próximos passos | **Antes de iniciar** o desenvolvimento | **Ao finalizar** o desenvolvimento |
+| `docs/ROADMAP.md` | Plano de execução: o caminho seguido e o que ainda vem | **Antes de iniciar** o desenvolvimento | **Ao finalizar** o desenvolvimento |
+| `docs/ARCHITECTURE.md` | Estrutura de arquivos e responsabilidades | **Antes de iniciar**; evita abrir arquivos à toa | Quando a estrutura mudar |
+| `docs/GITFLOW.md` | Guia dos fluxos Git (branch, commit, PR, release) | Antes de commitar/abrir PR | Quando o fluxo mudar |
+| `docs/GUIDE.md` | Exemplos práticos de aplicação da filosofia | Quando houver dúvida de aplicação | Ao resolver um caso novo (após discussão) |
+| `README.md` | Como usar o produto | — | **Sempre** que o uso mudar |
+| `CONTRIBUTING.md` | Como contribuir (inclui visão da filosofia) | Antes de contribuir | Quando o processo mudar |
+
+### Fluxo obrigatório
+
+**Antes de iniciar o desenvolvimento**, leia:
+
+- `docs/PHILOSOPHY.md` (a doutrina)
+- `docs/STATE.md` (onde paramos)
+- `docs/ROADMAP.md` (para onde vamos)
+- `docs/ARCHITECTURE.md` (como o código está organizado)
+
+**Ao finalizar o desenvolvimento**, atualize:
+
+- `docs/STATE.md` (novo estado, decisões tomadas, próximos passos)
+- `docs/ROADMAP.md` (marque o que avançou)
+- `docs/ARCHITECTURE.md` (se a estrutura mudou)
+- `README.md` (se o uso mudou)
+- `CHANGELOG.md` (registre a mudança)
+
+> **Se algum desses documentos não existir, avise o mantenedor** em vez de
+> inventar conteúdo. Ele fornecerá o documento.
+
+---
+
+## 2. Como escrever arquivos
+
+**Sempre escreva arquivos via script (`python` ou `sh`) executado pela linha de
+comando**, nunca por edição direta com funções de *single replace*.
+
+Motivo: as ferramentas de edição por substituição única falham de forma
+silenciosa ou parcial em arquivos grandes, com caracteres especiais, ou quando o
+trecho aparece mais de uma vez. Um script é determinístico, verificável e
+reproduzível.
+
+```bash
+# Preferido: script Python com verificação
+python3 - <<'PYEOF'
+import pathlib
+
+path = pathlib.Path('caminho/do/arquivo.php')
+content = path.read_text()
+old = "trecho antigo"
+new = "trecho novo"
+assert old in content, "trecho antigo não encontrado"
+path.write_text(content.replace(old, new))
+print("OK")
+PYEOF
+```
+
+Regras:
+
+- **Sempre** valide que o trecho antigo existe (`assert`) antes de substituir.
+- **Sempre** imprima uma confirmação ao final.
+- Para arquivos novos, use `create_new_file` ou um heredoc em script.
+- Após editar PHP, rode `php -l <arquivo>` para validar a sintaxe.
+
+---
+
+## 3. Sobre este projeto
 
 This is a Symfony project. Check `composer.json` for the exact Symfony/PHP version
 in use, and read `symfony.lock` to see which recipes ran. Don't assume Doctrine,
