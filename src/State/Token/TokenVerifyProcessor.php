@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Phprise\KoenmaID\ApiResource\Token\TokenVerifyInput;
 use Phprise\KoenmaID\ApiResource\Token\TokenVerifyOutput;
+use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Phprise\KoenmaID\Service\Token\TokenVerifier;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -16,8 +17,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 final readonly class TokenVerifyProcessor implements ProcessorInterface
 {
-    public function __construct(private TokenVerifier $verifier)
-    {
+    public function __construct(
+        private TokenVerifier $verifier,
+        private SecurityKeyContext $securityKeyContext,
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): TokenVerifyOutput
@@ -26,7 +29,7 @@ final readonly class TokenVerifyProcessor implements ProcessorInterface
             throw new BadRequestHttpException('Invalid payload.');
         }
 
-        $verified = $this->verifier->verify($data->token);
+        $verified = $this->verifier->verify($data->token, $this->securityKeyContext->scope());
 
         $output = new TokenVerifyOutput();
         $output->valid = $verified->valid;

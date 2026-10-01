@@ -18,7 +18,7 @@ use Phprise\KoenmaID\State\Token\TokenVerifyProcessor;
     operations: [
         new Post(
             uriTemplate: '/token/create',
-            openapi: new OpenApiOperation(summary: 'Create an access token', description: 'Authenticates a user with an API Key, username and password, then issues a new access token and a new refresh token. Use this operation to start a session.'),
+            openapi: new OpenApiOperation(summary: 'Create an access token', description: 'Authenticates a user with a security key (X-Security-Key header), username and password, then issues a new access token and a new refresh token. Use this operation to start a session.'),
             input: TokenCreateInput::class,
             output: TokenOutput::class,
             processor: TokenCreateProcessor::class,

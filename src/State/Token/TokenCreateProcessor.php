@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Phprise\KoenmaID\ApiResource\Token\TokenCreateInput;
 use Phprise\KoenmaID\ApiResource\Token\TokenOutput;
+use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Phprise\KoenmaID\Service\Token\IssuedToken;
 use Phprise\KoenmaID\Service\Token\TokenAuthenticator;
 use Phprise\KoenmaID\Service\Token\TokenIssuer;
@@ -21,6 +22,7 @@ final readonly class TokenCreateProcessor implements ProcessorInterface
     public function __construct(
         private TokenAuthenticator $authenticator,
         private TokenIssuer $issuer,
+        private SecurityKeyContext $securityKeyContext,
     ) {
     }
 
@@ -30,7 +32,8 @@ final readonly class TokenCreateProcessor implements ProcessorInterface
             throw new BadRequestHttpException('Invalid payload.');
         }
 
-        $user = $this->authenticator->authenticate($data->apiKey, $data->username, $data->password);
+        $scope = $this->securityKeyContext->scope();
+        $user = $this->authenticator->authenticate($scope, $data->username, $data->password);
 
         return $this->toOutput($this->issuer->issue($user));
     }

@@ -9,12 +9,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class TokenCreateInput
 {
-    /** API Key of the project that owns the user. */
-    #[Groups(['token:create'])]
-    #[Assert\NotBlank(groups: ['token:create'])]
-    #[Assert\Length(max: 255, groups: ['token:create'])]
-    public string $apiKey = '';
-
     /** Username of the user that is starting the session. */
     #[Groups(['token:create'])]
     #[Assert\NotBlank(groups: ['token:create'])]

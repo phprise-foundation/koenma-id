@@ -4,42 +4,28 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Service\Token;
 
-use Phprise\KoenmaID\Entity\ApiKey;
 use Phprise\KoenmaID\Entity\User;
-use Phprise\KoenmaID\Repository\ApiKeyRepository;
 use Phprise\KoenmaID\Repository\UserRepository;
+use Phprise\KoenmaID\Service\Security\SecurityScope;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final readonly class TokenAuthenticator
 {
     public function __construct(
-        private ApiKeyRepository $apiKeys,
         private UserRepository $users,
         private UserPasswordHasherInterface $passwordHasher,
     ) {
     }
 
-    public function authenticate(string $plainApiKey, string $username, string $password): User
+    public function authenticate(SecurityScope $scope, string $username, string $password): User
     {
-        $apiKey = $this->resolveApiKey($plainApiKey);
         $user = $this->resolveUser($username);
 
-        $this->assertUserBelongsToApiKeyPartner($user, $apiKey);
+        $this->assertUserBelongsToScope($user, $scope);
         $this->assertPasswordMatches($user, $password);
 
         return $user;
-    }
-
-    private function resolveApiKey(string $plainApiKey): ApiKey
-    {
-        $apiKey = $this->apiKeys->findOneByHash(hash('sha256', $plainApiKey));
-
-        if (!$apiKey instanceof ApiKey || null !== $apiKey->deletedAt() || $apiKey->isExpired()) {
-            throw new UnauthorizedHttpException('Bearer', 'Invalid API key.');
-        }
-
-        return $apiKey;
     }
 
     private function resolveUser(string $username): User
@@ -53,12 +39,15 @@ final readonly class TokenAuthenticator
         return $user;
     }
 
-    private function assertUserBelongsToApiKeyPartner(User $user, ApiKey $apiKey): void
+    private function assertUserBelongsToScope(User $user, SecurityScope $scope): void
     {
-        $userPartnerId = (string) $user->contractor()->partner()->id();
-        $apiKeyPartnerId = (string) $apiKey->project()->partner()->id();
+        if ($scope->isMaster()) {
+            return;
+        }
 
-        if ($userPartnerId !== $apiKeyPartnerId) {
+        $userPartnerId = $user->contractor()->partner()->id();
+
+        if (null === $scope->partnerId() || !$scope->partnerId()->equals($userPartnerId)) {
             throw new UnauthorizedHttpException('Bearer', 'Invalid credentials.');
         }
     }
