@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Tests\Integration\Service;
 
 use Phprise\KoenmaID\ApiResource\User\UserInput;
+use Phprise\KoenmaID\Entity\Contractor;
+use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Phprise\KoenmaID\Service\User\UserRegistrar;
 use Phprise\KoenmaID\Tests\Factory\TestDataFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
@@ -24,51 +28,82 @@ final class UserRegistrarTest extends KernelTestCase
         $this->factory = $container->get(TestDataFactory::class);
     }
 
-    public function testRegistersUserWithValidApiKey(): void
+    public function testRegistersUserWithValidSecurityKey(): void
     {
-        $partner = $this->factory->createPartner();
-        $project = $this->factory->createProject($partner);
-        $this->factory->createApiKey($project, 'valid-plain-key');
+        $contractor = $this->seedContractorWithKey('registrar-valid');
+        $this->pushSecurityKey($this->securityKeyFor('registrar-valid'));
 
-        $input = $this->buildInput('valid-plain-key', 'newuser');
-
-        $user = $this->registrar->register($input);
+        $user = $this->registrar->register($contractor, $this->buildInput('newuser'));
 
         self::assertSame('newuser', $user->username());
         self::assertSame('newuser@example.com', $user->emailAddress());
         self::assertNotSame('plain-password', $user->getPassword());
     }
 
-    public function testRejectsInvalidApiKey(): void
+    public function testRejectsMissingSecurityKey(): void
     {
-        $input = $this->buildInput('unknown-key', 'newuser');
+        $contractor = $this->seedContractorWithKey('registrar-missing');
+        $this->pushSecurityKey(null);
 
         $this->expectException(UnauthorizedHttpException::class);
 
-        $this->registrar->register($input);
+        $this->registrar->register($contractor, $this->buildInput('newuser'));
     }
 
-    public function testRejectsDuplicateUsername(): void
+    public function testRejectsSecurityKeyOfAnotherPartner(): void
     {
-        $partner = $this->factory->createPartner();
-        $project = $this->factory->createProject($partner);
-        $this->factory->createApiKey($project, 'valid-plain-key');
-        $contractor = $this->factory->createContractor($partner);
-        $this->factory->createUser($contractor, 'plain-password', '1');
+        $contractor = $this->seedContractorWithKey('registrar-own');
+        $this->seedContractorWithKey('registrar-other');
+        $this->pushSecurityKey($this->securityKeyFor('registrar-other'));
 
-        $input = $this->buildInput('valid-plain-key', 'user1');
+        $this->expectException(UnauthorizedHttpException::class);
+
+        $this->registrar->register($contractor, $this->buildInput('newuser'));
+    }
+
+    public function testRejectsDuplicateUsernameInSameContractor(): void
+    {
+        $contractor = $this->seedContractorWithKey('registrar-dup');
+        $this->pushSecurityKey($this->securityKeyFor('registrar-dup'));
+        $this->factory->createUser($contractor, 'plain-password', 'dup');
 
         $this->expectException(ConflictHttpException::class);
 
-        $this->registrar->register($input);
+        $this->registrar->register($contractor, $this->buildInput('userdup'));
     }
 
-    private function buildInput(string $apiKey, string $username): UserInput
+    private function seedContractorWithKey(string $suffix): Contractor
+    {
+        $partner = $this->factory->createPartner($suffix);
+        $project = $this->factory->createProject($partner, $suffix);
+        $this->factory->createApiKey($project, $this->securityKeyFor($suffix), $suffix);
+
+        return $this->factory->createContractor($partner, $suffix);
+    }
+
+    private function securityKeyFor(string $suffix): string
+    {
+        return 'sk_'.str_pad(substr(md5($suffix), 0, 32), 32, '0');
+    }
+
+    private function pushSecurityKey(?string $securityKey): void
+    {
+        $stack = static::getContainer()->get('request_stack');
+        while (null !== $stack->getCurrentRequest()) {
+            $stack->pop();
+        }
+
+        $request = new Request();
+        if (null !== $securityKey) {
+            $request->headers->set(SecurityKeyContext::HEADER, $securityKey);
+        }
+
+        $stack->push($request);
+    }
+
+    private function buildInput(string $username): UserInput
     {
         $input = new UserInput();
-        $input->apiKey = $apiKey;
-        $input->contractorName = 'Contractor X';
-        $input->contractorDocument = 'doc-contractor-x';
         $input->username = $username;
         $input->emailAddress = $username.'@example.com';
         $input->password = 'plain-password';

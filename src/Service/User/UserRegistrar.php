@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Service\User;
 
 use Phprise\KoenmaID\ApiResource\User\UserInput;
-use Phprise\KoenmaID\Entity\ApiKey;
 use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Entity\User;
-use Phprise\KoenmaID\Repository\ApiKeyRepository;
-use Phprise\KoenmaID\Repository\ContractorRepository;
 use Phprise\KoenmaID\Repository\UserRepository;
+use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
@@ -19,20 +17,17 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final readonly class UserRegistrar
 {
     public function __construct(
-        private ApiKeyRepository $apiKeys,
-        private ContractorRepository $contractors,
         private UserRepository $users,
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
+        private SecurityKeyContext $securityKeyContext,
     ) {
     }
 
-    public function register(UserInput $input): User
+    public function register(Contractor $contractor, UserInput $input): User
     {
-        $apiKey = $this->resolveApiKey($input->apiKey);
-        $this->assertUsernameIsAvailable($input->username);
-
-        $contractor = $this->resolveContractor($apiKey, $input->contractorName, $input->contractorDocument);
+        $this->assertSecurityKeyBelongsToContractor($contractor);
+        $this->assertUsernameIsAvailable($contractor, $input->username);
 
         $user = new User($contractor, $input->username, $input->emailAddress);
         $user->changePassword($this->passwordHasher->hashPassword($user, $input->password));
@@ -43,34 +38,25 @@ final readonly class UserRegistrar
         return $user;
     }
 
-    private function resolveApiKey(string $plainKey): ApiKey
+    private function assertSecurityKeyBelongsToContractor(Contractor $contractor): void
     {
-        $apiKey = $this->apiKeys->findOneByHash(hash('sha256', $plainKey));
+        $scope = $this->securityKeyContext->scope();
 
-        if (!$apiKey instanceof ApiKey || null !== $apiKey->deletedAt() || !$apiKey->isExpired() === false) {
-            throw new UnauthorizedHttpException('Bearer', 'Invalid API key.');
+        if ($scope->isMaster()) {
+            return;
         }
 
-        return $apiKey;
-    }
+        $partnerId = $contractor->partner()->id();
 
-    private function resolveContractor(ApiKey $apiKey, string $name, string $document): Contractor
-    {
-        $existing = $this->contractors->findOneBy(['document' => $document]);
-        if ($existing instanceof Contractor) {
-            return $existing;
+        if (null === $scope->partnerId() || !$scope->partnerId()->equals($partnerId)) {
+            throw new UnauthorizedHttpException('SecurityKey', 'Invalid security key for this contractor.');
         }
-
-        $contractor = new Contractor($apiKey->project()->partner(), $name, $document);
-        $this->entityManager->persist($contractor);
-
-        return $contractor;
     }
 
-    private function assertUsernameIsAvailable(string $username): void
+    private function assertUsernameIsAvailable(Contractor $contractor, string $username): void
     {
-        if (null !== $this->users->findOneByUsername($username)) {
-            throw new ConflictHttpException('Username already registered.');
+        if (null !== $this->users->findOneByContractorAndUsername($contractor, $username)) {
+            throw new ConflictHttpException('Username already registered for this contractor.');
         }
     }
 }

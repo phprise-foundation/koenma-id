@@ -32,8 +32,8 @@ use Phprise\KoenmaID\State\User\UserPostProcessor;
             normalizationContext: ['groups' => ['user:get']],
         ),
         new Post(
-            openapi: new OpenApiOperation(summary: 'Create a user', description: 'Registers a new user. The request must carry a valid API Key of the partner that owns the contractor.'),
-            uriTemplate: '/users',
+            openapi: new OpenApiOperation(summary: 'Create a user', description: 'Registers a new user under the given contractor. The request must carry a valid security key of the partner that owns the contractor.'),
+            uriTemplate: '/contractors/{contractorId}/users',
             input: UserInput::class,
             processor: UserPostProcessor::class,
             denormalizationContext: ['groups' => ['user:post']],

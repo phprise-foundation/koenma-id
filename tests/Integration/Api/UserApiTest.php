@@ -10,7 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class UserApiTest extends WebTestCase
 {
-    private const string PLAIN_API_KEY = 'user-api-plain-key';
+    private const string SECURITY_KEY = 'sk_UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU';
 
     private KernelBrowser $client;
 
@@ -19,16 +19,14 @@ final class UserApiTest extends WebTestCase
         $this->client = static::createClient();
     }
 
-    public function testCreatesUserWithValidApiKey(): void
+    public function testCreatesUserUnderContractor(): void
     {
-        $this->seedApiKey('user-create');
+        $contractor = $this->seedContractorWithKey('user-create');
 
-        $this->client->request('POST', '/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('user-create'),
         ], json_encode([
-            'apiKey' => self::PLAIN_API_KEY,
-            'contractorName' => 'Contractor Alpha',
-            'contractorDocument' => 'doc-user-create',
             'username' => 'newuser',
             'emailAddress' => 'newuser@example.com',
             'password' => 'plain-password',
@@ -38,19 +36,18 @@ final class UserApiTest extends WebTestCase
         $payload = $this->decode();
         self::assertSame('newuser', $payload['username']);
         self::assertSame('newuser@example.com', $payload['emailAddress']);
+        self::assertSame($contractor->id()->toString(), $payload['contractorId']);
         self::assertArrayHasKey('id', $payload);
     }
 
     public function testRejectsInvalidUserPayload(): void
     {
-        $this->seedApiKey('user-invalid');
+        $contractor = $this->seedContractorWithKey('user-invalid');
 
-        $this->client->request('POST', '/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('user-invalid'),
         ], json_encode([
-            'apiKey' => self::PLAIN_API_KEY,
-            'contractorName' => 'Contractor Alpha',
-            'contractorDocument' => 'doc-user-invalid',
             'username' => 'ab',
             'emailAddress' => 'not-an-email',
             'password' => 'short',
@@ -59,20 +56,73 @@ final class UserApiTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
-    public function testRejectsUnknownApiKey(): void
+    public function testRejectsMissingSecurityKey(): void
     {
-        $this->client->request('POST', '/users', [], [], [
+        $contractor = $this->seedContractorWithKey('user-no-key');
+
+        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode([
-            'apiKey' => 'unknown-plain-key',
-            'contractorName' => 'Contractor Alpha',
-            'contractorDocument' => 'doc-user-unknown',
             'username' => 'newuser',
             'emailAddress' => 'newuser@example.com',
             'password' => 'plain-password',
         ], \JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testRejectsSecurityKeyOfAnotherPartner(): void
+    {
+        $contractor = $this->seedContractorWithKey('user-own');
+        $this->seedContractorWithKey('user-other');
+
+        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => 'sk_OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
+        ], json_encode([
+            'username' => 'newuser',
+            'emailAddress' => 'newuser@example.com',
+            'password' => 'plain-password',
+        ], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testReturnsNotFoundForUnknownContractor(): void
+    {
+        $this->seedContractorWithKey('user-unknown');
+
+        $this->client->request('POST', '/contractors/cnt_01M2BW4T17D5EG03XCJ8XG0ARR/users', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('user-unknown'),
+        ], json_encode([
+            'username' => 'newuser',
+            'emailAddress' => 'newuser@example.com',
+            'password' => 'plain-password',
+        ], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testAllowsSameUsernameInDifferentContractors(): void
+    {
+        $first = $this->seedContractorWithKey('user-dup-a');
+        $second = $this->seedContractorWithKey('user-dup-b');
+
+        $this->createUser($first, 'shareduser', 'user-dup-a');
+        $this->createUser($second, 'shareduser', 'user-dup-b');
+
+        self::assertResponseStatusCodeSame(201);
+    }
+
+    public function testRejectsDuplicateUsernameInSameContractor(): void
+    {
+        $contractor = $this->seedContractorWithKey('user-dup-same');
+
+        $this->createUser($contractor, 'duplicated', 'user-dup-same');
+        $this->createUser($contractor, 'duplicated', 'user-dup-same');
+
+        self::assertResponseStatusCodeSame(409);
     }
 
     public function testListsUsersOfContractor(): void
@@ -140,11 +190,30 @@ final class UserApiTest extends WebTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    private function seedApiKey(string $suffix): void
+    private function seedContractorWithKey(string $suffix): \Phprise\KoenmaID\Entity\Contractor
     {
         $partner = $this->factory()->createPartner($suffix);
         $project = $this->factory()->createProject($partner, $suffix);
-        $this->factory()->createApiKey($project, self::PLAIN_API_KEY, $suffix);
+        $this->factory()->createApiKey($project, $this->securityKeyFor($suffix), $suffix);
+
+        return $this->factory()->createContractor($partner, $suffix);
+    }
+
+    private function securityKeyFor(string $suffix): string
+    {
+        return 'sk_'.str_pad(substr(md5($suffix), 0, 32), 32, '0');
+    }
+
+    private function createUser(\Phprise\KoenmaID\Entity\Contractor $contractor, string $username, string $suffix): void
+    {
+        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor($suffix),
+        ], json_encode([
+            'username' => $username,
+            'emailAddress' => $username.'@example.com',
+            'password' => 'plain-password',
+        ], \JSON_THROW_ON_ERROR));
     }
 
     private function factory(): TestDataFactory

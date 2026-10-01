@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Repository;
 
+use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -24,6 +25,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findOneByUsername(string $username): ?User
     {
         return $this->findOneBy(['username' => $username]);
+    }
+
+    public function findOneByContractorAndUsername(Contractor $contractor, string $username): ?User
+    {
+        return $this->findOneBy(['contractor' => $contractor, 'username' => $username]);
     }
 
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void

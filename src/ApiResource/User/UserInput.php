@@ -9,24 +9,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserInput
 {
-    /** API Key of the project that owns the contractor. */
-    #[Groups(['user:post'])]
-    #[Assert\NotBlank(groups: ['user:post'])]
-    #[Assert\Length(max: 255, groups: ['user:post'])]
-    public string $apiKey = '';
-
-    /** Name of the contractor. Used when the contractor does not exist yet. */
-    #[Groups(['user:post'])]
-    #[Assert\NotBlank(groups: ['user:post'])]
-    #[Assert\Length(max: 255, groups: ['user:post'])]
-    public string $contractorName = '';
-
-    /** Document of the contractor. Used when the contractor does not exist yet. */
-    #[Groups(['user:post'])]
-    #[Assert\NotBlank(groups: ['user:post'])]
-    #[Assert\Length(max: 32, groups: ['user:post'])]
-    public string $contractorDocument = '';
-
     /** Username used to authenticate. */
     #[Groups(['user:post'])]
     #[Assert\NotBlank(groups: ['user:post'])]
