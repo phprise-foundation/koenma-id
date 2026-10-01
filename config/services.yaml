@@ -32,3 +32,5 @@ when@test:
             resource: '../tests/'
             exclude:
                 - '../tests/bootstrap.php'
+        Phprise\KoenmaID\Service\Security\SecurityKeyContext:
+            public: true

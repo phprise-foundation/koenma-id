@@ -37,9 +37,9 @@ final class ApiKeyOutput
     #[Groups(['api_key:get'])]
     public string $createdAt = '';
 
-    /** Plain API Key. Returned only in the create response and never stored. Store it now, because it cannot be recovered. */
+    /** Plain security key. Returned only in the create response and never stored. Store it now, because it cannot be recovered. */
     #[Groups(['api_key:post'])]
-    public ?string $key = null;
+    public ?string $securityKey = null;
 
     public static function fromEntity(ApiKey $apiKey): self
     {
@@ -58,7 +58,7 @@ final class ApiKeyOutput
     public static function fromIssued(ApiKey $apiKey, string $plainKey): self
     {
         $output = self::fromEntity($apiKey);
-        $output->key = $plainKey;
+        $output->securityKey = $plainKey;
 
         return $output;
     }

@@ -31,8 +31,8 @@ final class ApiKeyApiTest extends WebTestCase
         self::assertSame($project->id()->toString(), $payload['projectId']);
         self::assertArrayHasKey('keyPrefix', $payload);
         self::assertArrayHasKey('keySuffix', $payload);
-        self::assertArrayHasKey('key', $payload);
-        self::assertMatchesRegularExpression('/^sk_[A-Za-z0-9]{32}$/', $payload['key']);
+        self::assertArrayHasKey('securityKey', $payload);
+        self::assertMatchesRegularExpression('/^sk_[A-Za-z0-9]{32}$/', $payload['securityKey']);
     }
 
     public function testExposesPlainKeyOnlyOnCreation(): void
@@ -45,13 +45,13 @@ final class ApiKeyApiTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(201);
         $created = $this->decode();
-        self::assertArrayHasKey('key', $created);
+        self::assertArrayHasKey('securityKey', $created);
 
         $this->client->request('GET', '/api-keys/'.$created['id']);
 
         self::assertResponseIsSuccessful();
         $fetched = $this->decode();
-        self::assertArrayNotHasKey('key', $fetched);
+        self::assertArrayNotHasKey('securityKey', $fetched);
     }
 
     public function testRejectsInvalidApiKeyPayload(): void
