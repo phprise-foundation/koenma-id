@@ -248,9 +248,10 @@ symfony serve -d
 - **Formatos de entrada**: JSON e JSON-LD.
 - **PATCH**: `application/merge-patch+json` ou `application/json`.
 - **Não usamos PUT**: apenas `POST`, `GET` e `PATCH`.
-- **Autenticação**: atualmente **desabilitada** (firewall `main` com
-  `security: false`). O modelo de permissões de API Key será definido antes de
-  integrar com os demais sistemas.
+- **Autenticação**: o firewall `main` está com `security: false`. A criação de
+  User exige o cabeçalho **`X-Security-Key`** (chave de segurança do Partner),
+  validado pelo `SecurityKeyContext`. O modelo completo de permissões será
+  aplicado nas próximas fases.
 
 ### Content-Type nos exemplos
 
@@ -468,19 +469,16 @@ CONTRACTOR_ID="cnt_01M3P7G0H5Y8ZK3QW9X2N4T6VB"
 
 ### 7.5 Criar um User
 
-O User é a pessoa que vai autenticar com username e password. A criação exige
-uma **API Key válida** do Partner que possui o Contractor.
-
-> Se o Contractor informado (`contractorDocument`) ainda não existir, ele é
-> criado automaticamente. Se já existir, o User é vinculado a ele.
+O User é a pessoa que vai autenticar com username e password. Ele é criado
+**dentro de um Contractor** já existente, e a requisição exige uma **chave de
+segurança válida** do Partner que possui esse Contractor, enviada no cabeçalho
+`X-Security-Key`.
 
 ```bash
-curl -X POST "http://localhost/users" \
+curl -X POST "http://localhost/contractors/$CONTRACTOR_ID/users" \
   -H 'Content-Type: application/json' \
+  -H "X-Security-Key: sk_9OqPu4m0VRfEwPc9x6fRejjQEz775exr" \
   -d '{
-    "apiKey": "sk_9OqPu4m0VRfEwPc9x6fRejjQEz775exr",
-    "contractorName": "Filial São Paulo",
-    "contractorDocument": "98765432000188",
     "username": "joao.silva",
     "emailAddress": "joao.silva@acme.example.com",
     "password": "S3nh4-F0rte!"
@@ -505,7 +503,7 @@ curl -X POST "http://localhost/users" \
 
 | Campo | Regra |
 |---|---|
-| `username` | 3 a 180 caracteres, único |
+| `username` | 3 a 180 caracteres, único **dentro do Contractor** |
 | `emailAddress` | Email válido |
 | `password` | 8 a 255 caracteres |
 
@@ -513,9 +511,13 @@ curl -X POST "http://localhost/users" \
 
 | Status | Motivo |
 |---|---|
-| `401` | API Key inválida, expirada ou revogada |
-| `409` | Username já cadastrado |
+| `401` | Chave de segurança ausente, inválida ou de outro Partner |
+| `404` | Contractor não encontrado |
+| `409` | Username já cadastrado **neste** Contractor |
 | `422` | Campos inválidos |
+
+> O mesmo `username` pode existir em Contractors diferentes. A unicidade é
+> sempre **por Contractor**.
 
 ### 7.6 Gerar tokens (create)
 
@@ -704,9 +706,10 @@ CONTRACTOR_ID=$(curl -s -X POST "$BASE/partners/$PARTNER_ID/contractors" \
 echo "Contractor: $CONTRACTOR_ID"
 
 # 5. User
-curl -s -X POST "$BASE/users" \
+curl -s -X POST "$BASE/contractors/$CONTRACTOR_ID/users" \
   -H 'Content-Type: application/json' \
-  -d "{\"apiKey\":\"$API_KEY\",\"contractorName\":\"Filial $SUFFIX\",\"contractorDocument\":\"cnt-$SUFFIX\",\"username\":\"user$SUFFIX\",\"emailAddress\":\"user$SUFFIX@example.com\",\"password\":\"S3nh4-F0rte!\"}" \
+  -H "X-Security-Key: $API_KEY" \
+  -d "{\"username\":\"user$SUFFIX\",\"emailAddress\":\"user$SUFFIX@example.com\",\"password\":\"S3nh4-F0rte!\"}" \
   | jq -r '.id'
 
 # 6. Tokens
@@ -781,7 +784,7 @@ curl -s -X POST "$BASE/token/revoke" \
 |---|---|---|
 | `GET` | `/contractors/{contractorId}/users` | Lista os users de um contractor |
 | `GET` | `/users/{id}` | Retorna um user |
-| `POST` | `/users` | Cria um user (exige API Key) |
+| `POST` | `/contractors/{contractorId}/users` | Cria um user (exige `X-Security-Key`) |
 | `PATCH` | `/users/{id}` | Atualiza username, email ou password |
 
 ### Tokens

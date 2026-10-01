@@ -22,11 +22,11 @@
 
 **Objetivo:** endurecer o modelo de chaves e isolar dados por parceiro.
 
-- [ ] **POST /users** passa a ser `POST /contractors/{contractorId}/users` (não cria mais Contractor)
-- [ ] Chave de segurança recebida por cabeçalho (`X-Security-Key`), validada por hash e expiração
-- [ ] Remover `apiKey`, `contractorName`, `contractorDocument` do payload de criação de User
-- [ ] Unicidade `username` por Contractor (mesmo username permitido em Contractors diferentes) + testes
-- [ ] Renomear o campo da chave para `securityKey` em todo o sistema (nunca em payloads)
+- [x] **POST /users** passa a ser `POST /contractors/{contractorId}/users` (não cria mais Contractor)
+- [x] Chave de segurança recebida por cabeçalho (`X-Security-Key`), validada por hash e expiração
+- [x] Remover `apiKey`, `contractorName`, `contractorDocument` do payload de criação de User
+- [x] Unicidade `username` por Contractor (mesmo username permitido em Contractors diferentes) + testes
+- [x] Renomear o campo da chave para `securityKey` em todo o sistema (nunca em payloads)
 - [ ] Endpoint de **deleção** de API Key (exige a chave no cabeçalho)
 - [ ] Filtro de API Keys **não expiradas** no GetCollection
 - [ ] `/token/verify` valida também a chave de segurança (mesmo Partner, não expirada)

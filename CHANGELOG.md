@@ -25,6 +25,13 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   - `Service\Security\MasterSecurityKey`: lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals`
   - `.env` ganhou `MASTER_SECURITY_KEY=` (default vazio); `.env.test` ganhou `MASTER_SECURITY_KEY` e `JWT_PASSPHRASE`
   - Testes: `SecurityKeyTest` + `SecurityKeyContextTest`
+- **Fase 1.5 / Etapa B — POST /users vinculado ao Contractor**:
+  - Rota `POST /contractors/{contractorId}/users` (não cria mais Contractor)
+  - `UserInput` sem `apiKey`, `contractorName`, `contractorDocument`
+  - `UserRegistrar::register(Contractor, UserInput)` valida a chave via `SecurityKeyContext`
+  - `UserPostProcessor` resolve o Contractor pelo `contractorId` (404 se ausente)
+  - Unicidade `username` por Contractor (migration `uniq_user_contractor_username`)
+  - Testes: `UserApiTest` + `UserRegistrarTest`
 
 ### Alterado
 

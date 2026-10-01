@@ -105,6 +105,14 @@ vai contra o combinado.
 - [x] **`CONTRIBUTING.md`** criado: visão geral da filosofia + processo de contribuição
 - [x] **`README.md`** atualizado: seção "Filosofia e documentação" apontando PHILOSOPHY/GUIDE/GITFLOW/CONTRIBUTING
 - [x] **Segurança**: `JWT_PASSPHRASE` real removido do `.env` (rastreado) e movido para `.env.local` (git-ignored); `.gitignore` reorganizado
+- [x] **Fase 1.5 / Etapa B — POST /users vinculado ao Contractor** (concluída):
+  - Rota `POST /contractors/{contractorId}/users` (não cria mais Contractor)
+  - `UserInput` sem `apiKey`, `contractorName`, `contractorDocument`
+  - `UserRegistrar::register(Contractor, UserInput)` valida a chave via `SecurityKeyContext`
+  - `UserPostProcessor` resolve o Contractor pelo `contractorId` da rota (404 se ausente)
+  - Unicidade `username` por Contractor (migration `uniq_user_contractor_username`)
+  - Testes: `UserApiTest` (12) + `UserRegistrarTest` (4)
+  - Suíte total: **64 testes, 127 assertions**
 - [x] **Versionamento e releases**:
   - Política `0.y.z` adotada (desenvolvimento inicial); `v1.0.0` só quando todas as fases estiverem prontas
   - Tag inicial reescrita de `v1.0.0` para **`v0.1.0`** (exceção única de fundação, documentada no GITFLOW)
