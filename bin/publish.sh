@@ -23,6 +23,7 @@ TARGET_PATH="$(pwd)"
 REPO_INPUT=""
 TAG_INPUT=""
 DRY_RUN="false"
+VISIBILITY="private"
 PACKAGIST_USER="${PACKAGIST_USER:-}"
 PACKAGIST_TOKEN="${PACKAGIST_TOKEN:-}"
 
@@ -47,6 +48,8 @@ Opções:
   --path <dir>      Caminho do repositório local. Padrão: diretório atual.
   --repo <owner/name>  Repositório no GitHub. Obrigatório se o remote
                        'origin' ainda não estiver configurado.
+  --public          Cria o repositório como público (padrão: privado).
+  --private         Cria o repositório como privado (padrão).
   --dry-run         Simula todas as etapas sem alterar nada.
   -h, --help        Mostra esta mensagem.
 
@@ -82,6 +85,8 @@ parse_arguments() {
             --tag)   TAG_INPUT="${2:-}"; shift 2 ;;
             --path)  TARGET_PATH="${2:-}"; shift 2 ;;
             --repo)  REPO_INPUT="${2:-}"; shift 2 ;;
+            --public) VISIBILITY="public"; shift ;;
+            --private) VISIBILITY="private"; shift ;;
             --dry-run) DRY_RUN="true"; shift ;;
             -h|--help) show_help; exit 0 ;;
             *) die "Parâmetro desconhecido: $1 (use --help)" ;;
@@ -153,12 +158,12 @@ ensure_github_repository() {
     fi
 
     [ -n "$REPO_INPUT" ] || die "Repositório inexistente no GitHub e --repo não informado."
-    log_info "Criando repositório público no GitHub: $REPO_ID"
-    run gh repo create "$REPO_ID" --public --source=. --remote=origin
+    log_info "Criando repositório $VISIBILITY no GitHub: $REPO_ID"
+    run gh repo create "$REPO_ID" "--$VISIBILITY" --source=. --remote=origin
 }
 
 configure_origin_remote() {
-    local target_url="https://${GITHUB_HOST}/${REPO_ID}"
+    local target_url="git@${GITHUB_HOST}:${REPO_ID}.git"
     if is_git_repository && git remote get-url origin >/dev/null 2>&1; then
         run git remote set-url origin "$target_url"
         return 0
