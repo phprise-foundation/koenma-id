@@ -10,6 +10,7 @@ use Phprise\KoenmaID\ApiResource\Partner\PartnerOutput;
 use Phprise\KoenmaID\ApiResource\Partner\PartnerPatchInput;
 use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Repository\PartnerRepository;
+use Phprise\KoenmaID\Service\Security\MasterScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -22,6 +23,7 @@ final readonly class PartnerPatchProcessor implements ProcessorInterface
     public function __construct(
         private PartnerRepository $partners,
         private EntityManagerInterface $entityManager,
+        private MasterScopeGuard $masterScopeGuard,
     ) {
     }
 
@@ -30,6 +32,8 @@ final readonly class PartnerPatchProcessor implements ProcessorInterface
         if (!$data instanceof PartnerPatchInput) {
             throw new BadRequestHttpException('Invalid payload.');
         }
+
+        $this->masterScopeGuard->assertMaster();
 
         $partner = $this->partners->find($uriVariables['id'] ?? null);
 

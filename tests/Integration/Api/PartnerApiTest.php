@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class PartnerApiTest extends WebTestCase
 {
+    private const string MASTER_KEY = 'sk_MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM';
+
     private KernelBrowser $client;
 
     protected function setUp(): void
@@ -23,6 +25,7 @@ final class PartnerApiTest extends WebTestCase
     {
         $this->client->request('POST', '/partners', [], [], [
             'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => self::MASTER_KEY,
         ], json_encode([
             'name' => 'Acme',
             'emailAddress' => 'acme@example.com',
@@ -40,6 +43,7 @@ final class PartnerApiTest extends WebTestCase
     {
         $this->client->request('POST', '/partners', [], [], [
             'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => self::MASTER_KEY,
         ], json_encode([
             'name' => '',
             'emailAddress' => 'not-an-email',
@@ -68,11 +72,37 @@ final class PartnerApiTest extends WebTestCase
 
         $this->client->request('PATCH', '/partners/'.$partner->id()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_X_SECURITY_KEY' => self::MASTER_KEY,
         ], json_encode(['name' => 'Renamed'], \JSON_THROW_ON_ERROR));
 
         self::assertResponseIsSuccessful();
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Renamed', $payload['name']);
+    }
+
+    public function testCreateRejectsMissingMasterKey(): void
+    {
+        $this->client->request('POST', '/partners', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode([
+            'name' => 'Acme',
+            'emailAddress' => 'acme@example.com',
+            'document' => 'doc-acme',
+        ], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testPatchRejectsMissingMasterKey(): void
+    {
+        $factory = static::getContainer()->get(TestDataFactory::class);
+        $partner = $factory->createPartner('patch-no-key');
+
+        $this->client->request('PATCH', '/partners/'.$partner->id()->toString(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+        ], json_encode(['name' => 'Renamed'], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(401);
     }
 
     public function testReturnsNotFoundForUnknownIdentifier(): void

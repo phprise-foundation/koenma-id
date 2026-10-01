@@ -10,6 +10,7 @@ use Phprise\KoenmaID\ApiResource\Partner\PartnerInput;
 use Phprise\KoenmaID\ApiResource\Partner\PartnerOutput;
 use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Service\Partner\PartnerRegistrar;
+use Phprise\KoenmaID\Service\Security\MasterScopeGuard;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -17,8 +18,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 final readonly class PartnerPostProcessor implements ProcessorInterface
 {
-    public function __construct(private PartnerRegistrar $registrar)
-    {
+    public function __construct(
+        private PartnerRegistrar $registrar,
+        private MasterScopeGuard $masterScopeGuard,
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): PartnerOutput
@@ -26,6 +29,8 @@ final readonly class PartnerPostProcessor implements ProcessorInterface
         if (!$data instanceof PartnerInput) {
             throw new BadRequestHttpException('Invalid payload.');
         }
+
+        $this->masterScopeGuard->assertMaster();
 
         $partner = $this->registrar->register($data->name, $data->emailAddress, $data->document);
 
