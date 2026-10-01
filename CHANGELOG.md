@@ -32,6 +32,12 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   - `UserPostProcessor` resolve o Contractor pelo `contractorId` (404 se ausente)
   - Unicidade `username` por Contractor (migration `uniq_user_contractor_username`)
   - Testes: `UserApiTest` + `UserRegistrarTest`
+- **Fase 1.5 / Etapa C — Chave de segurança nas rotas de token e API Key**:
+  - `/token/create` e `/token/verify` usam `X-Security-Key` (sem `apiKey` no payload)
+  - `DELETE /api-keys/{id}` (soft-delete, exige chave do Partner dono)
+  - GetCollection de API Keys filtra as expiradas (`findActiveByProject`)
+  - Master Key obrigatória para criar/editar Partners (`MasterScopeGuard`)
+  - Testes: `TokenFlowTest`, `ApiKeyApiTest`, `PartnerApiTest`
 
 ### Alterado
 

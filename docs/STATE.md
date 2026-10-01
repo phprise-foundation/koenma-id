@@ -113,6 +113,15 @@ vai contra o combinado.
   - Unicidade `username` por Contractor (migration `uniq_user_contractor_username`)
   - Testes: `UserApiTest` (12) + `UserRegistrarTest` (4)
   - Suíte total: **64 testes, 127 assertions**
+- [x] **Fase 1.5 / Etapa C — Chave de segurança nas rotas de token e API Key** (concluída):
+  - `/token/create` e `/token/verify` usam `X-Security-Key` (sem `apiKey` no payload)
+  - `DELETE /api-keys/{id}` (soft-delete, exige chave do Partner dono)
+  - GetCollection de API Keys filtra as expiradas (`findActiveByProject`)
+  - Master Key obrigatória para criar/editar Partners (`MasterScopeGuard`)
+  - Suíte total: **72 testes, 139 assertions**
+- [ ] **Fase 1.5 / Etapa D — Segregação por parceiro** (próximo passo):
+  - Master vê tudo; chave de parceiro vê só o seu, em todos os endpoints
+  - Toca todos os providers/processors de collection e item
 - [x] **Versionamento e releases**:
   - Política `0.y.z` adotada (desenvolvimento inicial); `v1.0.0` só quando todas as fases estiverem prontas
   - Tag inicial reescrita de `v1.0.0` para **`v0.1.0`** (exceção única de fundação, documentada no GITFLOW)

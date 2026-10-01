@@ -248,10 +248,14 @@ symfony serve -d
 - **Formatos de entrada**: JSON e JSON-LD.
 - **PATCH**: `application/merge-patch+json` ou `application/json`.
 - **Não usamos PUT**: apenas `POST`, `GET` e `PATCH`.
-- **Autenticação**: o firewall `main` está com `security: false`. A criação de
-  User exige o cabeçalho **`X-Security-Key`** (chave de segurança do Partner),
-  validado pelo `SecurityKeyContext`. O modelo completo de permissões será
-  aplicado nas próximas fases.
+- **Autenticação**: o firewall `main` está com `security: false`. As operações
+  sensíveis exigem o cabeçalho **`X-Security-Key`**, validado pelo
+  `SecurityKeyContext`:
+  - **Master Key** (`MASTER_SECURITY_KEY`): criar/editar Partners.
+  - **Chave de Partner**: criar User, criar/remover API Key, `/token/create` e
+    `/token/verify` (sempre restrita ao próprio Partner).
+  A segregação completa por parceiro em todos os endpoints será aplicada na
+  próxima fase.
 
 ### Content-Type nos exemplos
 
@@ -522,13 +526,14 @@ curl -X POST "http://localhost/contractors/$CONTRACTOR_ID/users" \
 ### 7.6 Gerar tokens (create)
 
 Com o User criado, é possível autenticar e obter um par de tokens. A operação
-`/token/create` exige a **API Key**, o **username** e a **password**.
+`/token/create` exige a **chave de segurança** (cabeçalho `X-Security-Key`), o
+**username** e a **password**.
 
 ```bash
 curl -X POST http://localhost/token/create \
   -H 'Content-Type: application/json' \
+  -H "X-Security-Key: sk_9OqPu4m0VRfEwPc9x6fRejjQEz775exr" \
   -d '{
-    "apiKey": "sk_9OqPu4m0VRfEwPc9x6fRejjQEz775exr",
     "username": "joao.silva",
     "password": "S3nh4-F0rte!"
   }'
@@ -561,12 +566,12 @@ REFRESH_TOKEN="a3f1c9e2b7d4..."
 
 | Status | Motivo |
 |---|---|
-| `401` | API Key inválida, username inexistente ou password incorreta |
+| `401` | Chave de segurança ausente/inválida, username inexistente ou password incorreta |
 | `422` | Campos obrigatórios ausentes |
 
-> **Nota de segurança:** a API Key precisa pertencer ao **mesmo Partner** do
-> usuário. Um usuário de um Partner não consegue autenticar com a API Key de
-> outro.
+> **Nota de segurança:** a chave de segurança precisa pertencer ao **mesmo
+> Partner** do usuário. Um usuário de um Partner não consegue autenticar com a
+> chave de outro.
 
 ### 7.7 Renovar o access token (refresh)
 
@@ -605,11 +610,13 @@ curl -X POST http://localhost/token/refresh \
 ### 7.8 Validar um token (verify)
 
 Verifica se um access token é válido e retorna informações sobre ele, **sem
-consumi-lo**.
+consumi-lo**. A chave de segurança (`X-Security-Key`) precisa pertencer ao mesmo
+Partner do usuário do token.
 
 ```bash
 curl -X POST http://localhost/token/verify \
   -H 'Content-Type: application/json' \
+  -H "X-Security-Key: sk_9OqPu4m0VRfEwPc9x6fRejjQEz775exr" \
   -d '{
     "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
   }'
@@ -748,8 +755,8 @@ curl -s -X POST "$BASE/token/revoke" \
 |---|---|---|
 | `GET` | `/partners` | Lista todos os partners |
 | `GET` | `/partners/{id}` | Retorna um partner |
-| `POST` | `/partners` | Cria um partner |
-| `PATCH` | `/partners/{id}` | Atualiza nome ou email |
+| `POST` | `/partners` | Cria um partner (exige **Master Key**) |
+| `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key**) |
 
 ### Projects
 
@@ -764,10 +771,11 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/projects/{projectId}/api-keys` | Lista as API Keys de um project |
+| `GET` | `/projects/{projectId}/api-keys` | Lista as API Keys **não expiradas** de um project |
 | `GET` | `/api-keys/{id}` | Retorna uma API Key (sem a chave em texto puro) |
 | `POST` | `/projects/{projectId}/api-keys` | Cria uma API Key (**exibe a chave uma única vez**) |
 | `PATCH` | `/api-keys/{id}` | Atualiza o nome |
+| `DELETE` | `/api-keys/{id}` | Remove (soft-delete) uma API Key (exige `X-Security-Key`) |
 
 ### Contractors
 

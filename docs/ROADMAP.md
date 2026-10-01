@@ -27,10 +27,10 @@
 - [x] Remover `apiKey`, `contractorName`, `contractorDocument` do payload de criação de User
 - [x] Unicidade `username` por Contractor (mesmo username permitido em Contractors diferentes) + testes
 - [x] Renomear o campo da chave para `securityKey` em todo o sistema (nunca em payloads)
-- [ ] Endpoint de **deleção** de API Key (exige a chave no cabeçalho)
-- [ ] Filtro de API Keys **não expiradas** no GetCollection
-- [ ] `/token/verify` valida também a chave de segurança (mesmo Partner, não expirada)
-- [ ] **Master Key** (variável de ambiente) para criar/editar Partners
+- [x] Endpoint de **deleção** de API Key (exige a chave no cabeçalho)
+- [x] Filtro de API Keys **não expiradas** no GetCollection
+- [x] `/token/verify` valida também a chave de segurança (mesmo Partner, não expirada)
+- [x] **Master Key** (variável de ambiente) para criar/editar Partners
 - [ ] Segregação por parceiro em todos os endpoints (Master vê tudo; chave de parceiro vê só o seu)
 
 ---
