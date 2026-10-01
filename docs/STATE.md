@@ -105,6 +105,11 @@ vai contra o combinado.
 - [x] **`CONTRIBUTING.md`** criado: visão geral da filosofia + processo de contribuição
 - [x] **`README.md`** atualizado: seção "Filosofia e documentação" apontando PHILOSOPHY/GUIDE/GITFLOW/CONTRIBUTING
 - [x] **Segurança**: `JWT_PASSPHRASE` real removido do `.env` (rastreado) e movido para `.env.local` (git-ignored); `.gitignore` reorganizado
+- [x] **Versionamento e releases**:
+  - Política `0.y.z` adotada (desenvolvimento inicial); `v1.0.0` só quando todas as fases estiverem prontas
+  - Tag inicial reescrita de `v1.0.0` para **`v0.1.0`** (exceção única de fundação, documentada no GITFLOW)
+  - Release `v0.1.0` publicada (uma release por tag)
+  - Ruleset "Protect version tags" ativo: bloqueia deleção/reescrita de `refs/tags/v*`
 - [x] **Fase 1.5 / Etapa A — Modelo de chave e cabeçalho** (concluída):
   - `ApiKeyOutput::$key` renomeado para `$securityKey` (grupo `api_key:post`)
   - `ValueObject\SecurityKey`: valida formato `sk_[A-Za-z0-9]{32}` e expõe `hash()` (sha256)

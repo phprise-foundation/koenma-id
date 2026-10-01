@@ -28,6 +28,12 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Alterado
 
+- **Versionamento**: adotada a política `0.y.z` (desenvolvimento inicial). A `v1.0.0`
+  só será declarada quando todas as fases estiverem prontas. A tag inicial foi
+  reescrita de `v1.0.0` para **`v0.1.0`** (exceção única de fundação)
+- **Tags imutáveis**: ruleset "Protect version tags" no GitHub bloqueia deleção e
+  reescrita de `refs/tags/v*`
+
 - **Política de releases**: passamos de "release só a cada major" para **uma
   release por tag** (cada tag gera sua própria release, com notas geradas; a
   release não se move). Documentado em `docs/GITFLOW.md` §3.1

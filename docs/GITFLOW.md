@@ -155,6 +155,32 @@ Após o merge, crie uma **tag** seguindo [SemVer](https://semver.org/lang/pt-BR/
 > Packagist normaliza o prefixo automaticamente. A versão em si (SemVer) é
 > `MAJOR.MINOR.PATCH`; o `v` pertence à tag, não à versão.
 
+### 3.0 Versão de desenvolvimento (`0.y.z`)
+
+Enquanto a API não for estável, versionamos em **`0.y.z`** (SemVer: "desenvolvimento
+inicial; qualquer coisa pode mudar"). A **`v1.0.0`** só será declarada quando
+**todas as fases** do roadmap estiverem prontas e a API for considerada estável.
+
+- `v0.1.0` — fundação e modelo de segurança (Fase 1.5 / Etapa A)
+- `v0.2.0` — Fase B, e assim por diante
+- `v1.0.0` — primeira versão estável (objetivo final)
+
+> **Pré-releases (`-rc.N`)** marcam um candidato à versão que ele precede. Se a
+> feature entra como `minor`, o RC é `v0.2.0-rc.1`; se é *breaking*, `v1.0.0-rc.1`.
+> O RC **sempre** aponta para a versão estável que ele vai se tornar.
+
+### 3.0.1 Imutabilidade das tags
+
+A partir da `v0.1.0`, **tags são imutáveis**: não se apaga nem se reescreve uma
+tag publicada. Isso é garantido por um **ruleset** no GitHub ("Protect version
+tags") que bloqueia `deletion` e `update` em `refs/tags/v*`.
+
+> **Exceção única (fundação).** No início do projeto, a tag `v1.0.0` (que apontava
+> para o commit inicial) foi **reescrita** para `v0.1.0`, para alinhar com a
+> política `0.y.z`. Foi uma exceção deliberada e **única**, registrada aqui para
+> rastreabilidade. Da `v0.1.0` em diante, a regra de imutabilidade vale sem
+> exceções.
+
 ### 3.1 Política de releases
 
 **Uma release por tag.** Cada tag publicada gera uma release própria, com suas
