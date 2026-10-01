@@ -26,6 +26,14 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   - `.env` ganhou `MASTER_SECURITY_KEY=` (default vazio); `.env.test` ganhou `MASTER_SECURITY_KEY` e `JWT_PASSPHRASE`
   - Testes: `SecurityKeyTest` + `SecurityKeyContextTest`
 
+### Alterado
+
+- **Política de releases**: passamos de "release só a cada major" para **uma
+  release por tag** (cada tag gera sua própria release, com notas geradas; a
+  release não se move). Documentado em `docs/GITFLOW.md` §3.1
+- **Política de tags**: prefixo `v` documentado explicitamente (`v1.0.0`)
+- **`bin/publish.sh`**: remote via SSH e visibilidade configurável (`--public`/`--private`, padrão privado)
+
 ### Segurança
 
 - **`JWT_PASSPHRASE` real removido do `.env`** (que estava rastreado pelo git) e movido para `.env.local` (git-ignored); `.env` agora contém apenas defaults

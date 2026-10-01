@@ -65,6 +65,27 @@
 
 ---
 
+## Fase 5 — Automação de Qualidade e Release (após a refatoração OTAKU)
+
+**Objetivo:** garantir a filosofia e automatizar o versionamento. **Depende** da
+fase de refatoração (os hooks de estilo só fazem sentido quando o código já
+estiver adequado ao OTAKU Manifesto).
+
+- [ ] **Git hooks de controle de código** (pre-commit / pre-push):
+  - `php-cs-fixer` (regras `@Symfony` + Object Calisthenics)
+  - PHPStan / Psalm (análise estática)
+  - `php -l` nos arquivos alterados
+  - `bin/phpunit` antes do push
+- [ ] **Proteção de tags** no GitHub (ruleset: impedir deleção/reescrita)
+- [ ] **Auto-tagging na `main`** via GitHub Actions:
+  - Workflow em `push` para `main` que calcula a próxima versão a partir dos
+    commits (Conventional Commits) e cria a tag + release
+  - Alternativa: `semantic-release` ou `release-please`
+- [ ] **CI** (GitHub Actions): rodar a suíte em cada PR
+- [ ] **Release automática** por tag (uma release por tag, com notas geradas)
+
+---
+
 ## Ideias futuras (não comprometidas)
 
 - Suporte a múltiplos algoritmos de assinatura (RS256/ES256)

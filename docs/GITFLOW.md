@@ -155,6 +155,29 @@ Após o merge, crie uma **tag** seguindo [SemVer](https://semver.org/lang/pt-BR/
 > Packagist normaliza o prefixo automaticamente. A versão em si (SemVer) é
 > `MAJOR.MINOR.PATCH`; o `v` pertence à tag, não à versão.
 
+### 3.1 Política de releases
+
+**Uma release por tag.** Cada tag publicada gera uma release própria, com suas
+próprias notas (`gh release create <tag> --generate-notes`). A release **não se
+move**: ela é um artefato imutável que documenta o que mudou naquela versão.
+
+| Tag | Release | Notas |
+|---|---|---|
+| `v1.0.0` | `v1.0.0` | o que entrou na 1.0.0 |
+| `v1.0.1` | `v1.0.1` | o que entrou na 1.0.1 |
+| `v1.1.0` | `v1.1.0` | o que entrou na 1.1.0 |
+
+- O GitHub marca automaticamente a **última release não-prerelease** como
+  **Latest** — não precisamos mover nada.
+- Versões instáveis usam `--prerelease` (ex.: `v2.0.0-rc.1`) e não viram Latest.
+- **Não** movemos uma release para uma tag mais nova: isso destruiria o histórico
+  e as notas por versão.
+
+> **Por que não "release só a cada major"?** Deixaria as versões intermediárias
+> (`v1.0.1`, `v1.1.0`) sem release nem notas, e o consumidor não veria o
+> changelog por versão no GitHub. Uma release por tag é mais simples, mais
+> rastreável e é o que o `gh release create` faz naturalmente.
+
 ```bash
 # Descubra a última tag
 git describe --tags --abbrev=0
@@ -164,7 +187,8 @@ git tag v1.1.0
 git push origin v1.1.0
 ```
 
-> **A cada nova major**, publique a tag como **release** no GitHub.
+> **Cada tag gera uma release própria** (ver seção 3.1). O GitHub marca a última
+> release não-prerelease como **Latest** automaticamente.
 
 ---
 
