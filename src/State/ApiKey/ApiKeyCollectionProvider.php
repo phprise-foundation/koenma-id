@@ -35,7 +35,7 @@ final readonly class ApiKeyCollectionProvider implements ProviderInterface
 
         $outputs = [];
 
-        foreach ($this->apiKeys->findBy(['project' => $project, 'deletedAt' => null]) as $apiKey) {
+        foreach ($this->apiKeys->findActiveByProject($project) as $apiKey) {
             $outputs[] = ApiKeyOutput::fromEntity($apiKey);
         }
 

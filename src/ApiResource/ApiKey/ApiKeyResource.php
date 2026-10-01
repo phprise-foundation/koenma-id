@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\ApiResource\ApiKey;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use Phprise\KoenmaID\State\ApiKey\ApiKeyCollectionProvider;
+use Phprise\KoenmaID\State\ApiKey\ApiKeyDeleteProcessor;
 use Phprise\KoenmaID\State\ApiKey\ApiKeyItemProvider;
 use Phprise\KoenmaID\State\ApiKey\ApiKeyPatchProcessor;
 use Phprise\KoenmaID\State\ApiKey\ApiKeyPostProcessor;
@@ -49,6 +51,12 @@ use Phprise\KoenmaID\State\ApiKey\ApiKeyPostProcessor;
             denormalizationContext: ['groups' => ['api_key:patch']],
             validationContext: ['groups' => ['api_key:patch']],
             normalizationContext: ['groups' => ['api_key:get']],
+        ),
+        new Delete(
+            openapi: new OpenApiOperation(summary: 'Delete an API Key', description: 'Soft-deletes an API Key. The request must carry a valid security key of the partner that owns the project.'),
+            uriTemplate: '/api-keys/{id}',
+            provider: ApiKeyItemProvider::class,
+            processor: ApiKeyDeleteProcessor::class,
         ),
     ],
 )]

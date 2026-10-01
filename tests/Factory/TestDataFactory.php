@@ -44,7 +44,7 @@ final readonly class TestDataFactory
         return $project;
     }
 
-    public function createApiKey(Project $project, string $plainKey, string $suffix = '1'): ApiKey
+    public function createApiKey(Project $project, string $plainKey, string $suffix = '1', ?\DateTimeImmutable $expiresAt = null): ApiKey
     {
         $apiKey = new ApiKey(
             $project,
@@ -53,6 +53,7 @@ final readonly class TestDataFactory
             substr($plainKey, 0, 8),
             substr($plainKey, -8),
         );
+        $apiKey->expireAt($expiresAt);
 
         $this->entityManager->persist($apiKey);
         $this->entityManager->flush();

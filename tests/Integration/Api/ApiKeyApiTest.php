@@ -103,6 +103,19 @@ final class ApiKeyApiTest extends WebTestCase
         self::assertSame($project->id()->toString(), $payload[0]['projectId']);
     }
 
+    public function testListsOnlyNonExpiredApiKeys(): void
+    {
+        $project = $this->seedProject('key-expired');
+        $this->factory()->createApiKey($project, 'plain-key-active', 'active');
+        $this->factory()->createApiKey($project, 'plain-key-expired', 'expired', new \DateTimeImmutable('-1 day'));
+
+        $this->client->request('GET', '/projects/'.$project->id()->toString().'/api-keys');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(1, $payload);
+    }
+
     public function testGetsApiKeyById(): void
     {
         $project = $this->seedProject('key-get');
@@ -129,6 +142,44 @@ final class ApiKeyApiTest extends WebTestCase
         self::assertSame('Renamed Key', $payload['name']);
     }
 
+    public function testDeletesApiKeyWithValidSecurityKey(): void
+    {
+        $project = $this->seedProjectWithKey('key-delete');
+        $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete', 'delete');
+
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString(), [], [], [
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('key-delete'),
+        ]);
+
+        self::assertResponseStatusCodeSame(204);
+
+        $this->client->request('GET', '/api-keys/'.$apiKey->id()->toString());
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testDeleteRejectsMissingSecurityKey(): void
+    {
+        $project = $this->seedProjectWithKey('key-delete-no-key');
+        $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete-no-key', 'delete-no-key');
+
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString());
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testDeleteRejectsSecurityKeyOfAnotherPartner(): void
+    {
+        $project = $this->seedProjectWithKey('key-delete-own');
+        $this->seedProjectWithKey('key-delete-other');
+        $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete-own', 'delete-own');
+
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString(), [], [], [
+            'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('key-delete-other'),
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
     public function testReturnsNotFoundForUnknownApiKey(): void
     {
         $this->client->request('GET', '/api-keys/aky_01M2BW4T17D5EG03XCJ8XG0ARR');
@@ -141,6 +192,19 @@ final class ApiKeyApiTest extends WebTestCase
         $partner = $this->factory()->createPartner($suffix);
 
         return $this->factory()->createProject($partner, $suffix);
+    }
+
+    private function seedProjectWithKey(string $suffix): \Phprise\KoenmaID\Entity\Project
+    {
+        $project = $this->seedProject($suffix);
+        $this->factory()->createApiKey($project, $this->securityKeyFor($suffix), $suffix);
+
+        return $project;
+    }
+
+    private function securityKeyFor(string $suffix): string
+    {
+        return 'sk_'.str_pad(substr(md5($suffix), 0, 32), 32, '0');
     }
 
     private function factory(): TestDataFactory
