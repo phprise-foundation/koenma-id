@@ -59,6 +59,26 @@ final class SecurityKeyTypeTest extends TestCase
         self::assertSame(SecurityKeyType::Anonymous, $this->context('not-a-key', $apiKeys)->keyType());
     }
 
+    public function testResolvesAnonymousForDeletedApiKey(): void
+    {
+        $apiKeys = $this->createMock(ApiKeyRepository::class);
+        $apiKeys->expects($this->once())
+            ->method('findOneByHash')
+            ->willReturn($this->apiKey(deletedAt: new \DateTimeImmutable()));
+
+        self::assertSame(SecurityKeyType::Anonymous, $this->context(self::VALID_KEY, $apiKeys)->keyType());
+    }
+
+    public function testResolvesAnonymousForExpiredApiKey(): void
+    {
+        $apiKeys = $this->createMock(ApiKeyRepository::class);
+        $apiKeys->expects($this->once())
+            ->method('findOneByHash')
+            ->willReturn($this->apiKey(expired: true));
+
+        self::assertSame(SecurityKeyType::Anonymous, $this->context(self::VALID_KEY, $apiKeys)->keyType());
+    }
+
     public function testDoesNotAlterResolvedScope(): void
     {
         $partner = $this->createStub(Partner::class);
@@ -76,15 +96,18 @@ final class SecurityKeyTypeTest extends TestCase
         self::assertSame($partner, $context->scope()->getPartner());
     }
 
-    private function apiKey(?Partner $partner = null): ApiKey
-    {
+    private function apiKey(
+        ?Partner $partner = null,
+        ?\DateTimeImmutable $deletedAt = null,
+        bool $expired = false,
+    ): ApiKey {
         $project = $this->createStub(Project::class);
         $project->method('getPartner')->willReturn($partner ?? $this->createStub(Partner::class));
 
         $apiKey = $this->createStub(ApiKey::class);
         $apiKey->method('getProject')->willReturn($project);
-        $apiKey->method('getDeletedAt')->willReturn(null);
-        $apiKey->method('isExpired')->willReturn(false);
+        $apiKey->method('getDeletedAt')->willReturn($deletedAt);
+        $apiKey->method('isExpired')->willReturn($expired);
 
         return $apiKey;
     }
