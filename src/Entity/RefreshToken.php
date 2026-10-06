@@ -53,27 +53,27 @@ class RefreshToken
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function id(): ?RefreshTokenId
+    public function getId(): ?RefreshTokenId
     {
         return $this->id;
     }
 
-    public function user(): User
+    public function getUser(): User
     {
         return $this->user;
     }
 
-    public function tokenHash(): string
+    public function getTokenHash(): string
     {
         return $this->tokenHash;
     }
 
-    public function expiresAt(): \DateTimeImmutable
+    public function getExpiresAt(): \DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
-    public function revokedAt(): ?\DateTimeImmutable
+    public function getRevokedAt(): ?\DateTimeImmutable
     {
         return $this->revokedAt;
     }
@@ -98,7 +98,7 @@ class RefreshToken
         return !$this->isRevoked() && !$this->isExpired();
     }
 
-    public function createdAt(): \DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

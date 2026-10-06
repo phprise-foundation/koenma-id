@@ -6,13 +6,12 @@ namespace Phprise\KoenmaID\State\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\User\UserOutput;
 use Phprise\KoenmaID\Entity\User;
 use Phprise\KoenmaID\Repository\UserRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProviderInterface<UserOutput>
+ * @implements ProviderInterface<User>
  */
 final readonly class UserItemProvider implements ProviderInterface
 {
@@ -20,14 +19,14 @@ final readonly class UserItemProvider implements ProviderInterface
     {
     }
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): UserOutput
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?User
     {
         $user = $this->users->find($uriVariables['id'] ?? null);
 
-        if (!$user instanceof User || null !== $user->deletedAt()) {
+        if (!$user instanceof User || null !== $user->getDeletedAt()) {
             throw new NotFoundHttpException('User not found.');
         }
 
-        return UserOutput::fromEntity($user);
+        return $user;
     }
 }

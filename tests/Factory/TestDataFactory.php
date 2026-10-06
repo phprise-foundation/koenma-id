@@ -36,7 +36,9 @@ final readonly class TestDataFactory
 
     public function createProject(Partner $partner, string $suffix = '1'): Project
     {
-        $project = new Project($partner, 'Project '.$suffix);
+        $project = new Project();
+        $project->setPartner($partner);
+        $project->setName('Project '.$suffix);
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();
@@ -46,13 +48,12 @@ final readonly class TestDataFactory
 
     public function createApiKey(Project $project, string $plainKey, string $suffix = '1', ?\DateTimeImmutable $expiresAt = null): ApiKey
     {
-        $apiKey = new ApiKey(
-            $project,
-            'ApiKey '.$suffix,
-            hash('sha256', $plainKey),
-            substr($plainKey, 0, 8),
-            substr($plainKey, -8),
-        );
+        $apiKey = new ApiKey();
+        $apiKey->setProject($project);
+        $apiKey->setName('ApiKey '.$suffix);
+        $apiKey->setKeyHash(hash('sha256', $plainKey));
+        $apiKey->setKeyPrefix(substr($plainKey, 0, 8));
+        $apiKey->setKeySuffix(substr($plainKey, -8));
         $apiKey->expireAt($expiresAt);
 
         $this->entityManager->persist($apiKey);
@@ -63,7 +64,10 @@ final readonly class TestDataFactory
 
     public function createContractor(Partner $partner, string $suffix = '1'): Contractor
     {
-        $contractor = new Contractor($partner, 'Contractor '.$suffix, 'doc-contractor-'.$suffix);
+        $contractor = new Contractor();
+        $contractor->setPartner($partner);
+        $contractor->setName('Contractor '.$suffix);
+        $contractor->setDocument('doc-contractor-'.$suffix);
 
         $this->entityManager->persist($contractor);
         $this->entityManager->flush();
@@ -73,7 +77,9 @@ final readonly class TestDataFactory
 
     public function createUser(Contractor $contractor, string $plainPassword, string $suffix = '1'): User
     {
-        $user = new User($contractor, 'user'.$suffix, 'user'.$suffix.'@example.com');
+        $user = (new User())->setContractor($contractor);
+        $user->setUsername('user'.$suffix);
+        $user->setEmailAddress('user'.$suffix.'@example.com');
         $user->changePassword($this->passwordHasher->hashPassword($user, $plainPassword));
 
         $this->entityManager->persist($user);

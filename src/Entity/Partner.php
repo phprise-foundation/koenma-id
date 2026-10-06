@@ -4,17 +4,63 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use Phprise\KoenmaID\Doctrine\IdGenerator\PrefixedIdGenerator;
 use Phprise\KoenmaID\Doctrine\Type\PartnerIdType;
 use Phprise\KoenmaID\Repository\PartnerRepository;
+use Phprise\KoenmaID\State\Partner\PartnerCollectionProvider;
+use Phprise\KoenmaID\State\Partner\PartnerItemProvider;
+use Phprise\KoenmaID\State\Partner\PartnerPatchProcessor;
+use Phprise\KoenmaID\State\Partner\PartnerPostProcessor;
 use Phprise\KoenmaID\ValueObject\PartnerId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    description: 'A partner is the organization that contracts the API. It owns projects and contractors.',
+    shortName: 'Partner',
+    operations: [
+        new GetCollection(
+            openapi: new OpenApiOperation(summary: 'List partners', description: 'Returns every partner.'),
+            uriTemplate: '/partners',
+            provider: PartnerCollectionProvider::class,
+            normalizationContext: ['groups' => ['partner:get']],
+        ),
+        new Get(
+            openapi: new OpenApiOperation(summary: 'Get a partner', description: 'Returns a single partner by its identifier.'),
+            uriTemplate: '/partners/{id}',
+            provider: PartnerItemProvider::class,
+            normalizationContext: ['groups' => ['partner:get']],
+        ),
+        new Post(
+            openapi: new OpenApiOperation(summary: 'Create a partner', description: 'Registers a new partner.'),
+            uriTemplate: '/partners',
+            processor: PartnerPostProcessor::class,
+            denormalizationContext: ['groups' => ['partner:post']],
+            validationContext: ['groups' => ['partner:post']],
+            normalizationContext: ['groups' => ['partner:get']],
+        ),
+        new Patch(
+            openapi: new OpenApiOperation(summary: 'Update a partner', description: 'Updates the name or the email address of a partner.'),
+            uriTemplate: '/partners/{id}',
+            provider: PartnerItemProvider::class,
+            processor: PartnerPatchProcessor::class,
+            denormalizationContext: ['groups' => ['partner:patch']],
+            validationContext: ['groups' => ['partner:patch']],
+            normalizationContext: ['groups' => ['partner:get']],
+        ),
+    ],
+)]
 class Partner
 {
     #[ORM\Id]
@@ -24,22 +70,25 @@ class Partner
     private ?PartnerId $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank(groups: ['partner:post'])]
+    #[Assert\Length(max: 255, groups: ['partner:post', 'partner:patch'])]
+    #[Groups(['partner:post', 'partner:patch'])]
     private string $name;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Email]
-    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank(groups: ['partner:post'])]
+    #[Assert\Email(groups: ['partner:post', 'partner:patch'])]
+    #[Assert\Length(max: 255, groups: ['partner:post', 'partner:patch'])]
+    #[Groups(['partner:post', 'partner:patch'])]
     private string $emailAddress;
 
     #[ORM\Column]
     private bool $emailVerified = false;
 
     #[ORM\Column(length: 32, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 32)]
+    #[Assert\NotBlank(groups: ['partner:post'])]
+    #[Assert\Length(max: 32, groups: ['partner:post'])]
+    #[Groups(['partner:post'])]
     private string $document;
 
     #[ORM\Column]
@@ -84,12 +133,14 @@ class Partner
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function id(): ?PartnerId
+    #[Groups(['partner:get'])]
+    public function getId(): ?PartnerId
     {
         return $this->id;
     }
 
-    public function name(): string
+    #[Groups(['partner:get'])]
+    public function getName(): string
     {
         return $this->name;
     }
@@ -99,7 +150,8 @@ class Partner
         $this->name = $name;
     }
 
-    public function emailAddress(): string
+    #[Groups(['partner:get'])]
+    public function getEmailAddress(): string
     {
         return $this->emailAddress;
     }
@@ -110,7 +162,20 @@ class Partner
         $this->emailVerified = false;
     }
 
-    public function emailVerified(): bool
+    #[Groups(['partner:patch'])]
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    #[Groups(['partner:patch'])]
+    public function setEmailAddress(string $emailAddress): void
+    {
+        $this->changeEmailAddress($emailAddress);
+    }
+
+    #[Groups(['partner:get'])]
+    public function isEmailVerified(): bool
     {
         return $this->emailVerified;
     }
@@ -120,12 +185,14 @@ class Partner
         $this->emailVerified = true;
     }
 
-    public function document(): string
+    #[Groups(['partner:get'])]
+    public function getDocument(): string
     {
         return $this->document;
     }
 
-    public function active(): bool
+    #[Groups(['partner:get'])]
+    public function isActive(): bool
     {
         return $this->active;
     }
@@ -140,7 +207,8 @@ class Partner
         $this->active = true;
     }
 
-    public function createdAt(): \DateTimeImmutable
+    #[Groups(['partner:get'])]
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -150,7 +218,7 @@ class Partner
         return $this->updatedAt;
     }
 
-    public function deletedAt(): ?\DateTimeImmutable
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
     }

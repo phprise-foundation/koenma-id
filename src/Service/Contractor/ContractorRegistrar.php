@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Service\Contractor;
 
 use Phprise\KoenmaID\Entity\Contractor;
-use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Repository\ContractorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -18,11 +17,9 @@ final readonly class ContractorRegistrar
     ) {
     }
 
-    public function register(Partner $partner, string $name, string $document): Contractor
+    public function register(Contractor $contractor): Contractor
     {
-        $this->assertDocumentIsAvailable($document);
-
-        $contractor = new Contractor($partner, $name, $document);
+        $this->assertDocumentIsAvailable($contractor->getDocument());
 
         $this->entityManager->persist($contractor);
         $this->entityManager->flush();

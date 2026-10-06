@@ -1,8 +1,8 @@
 # Estado do Projeto — Koenma ID
 
-> **Atualizado em:** 2026-09-30
-> **Branch:** `1.x`
-> **Fase atual:** Fase 1 — Entidades + Rotas de Token (em andamento)
+> **Atualizado em:** 2026-10-06
+> **Branch:** `main`
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); suíte 100% verde
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -167,6 +167,15 @@ vai contra o combinado.
   - `.env.prod` + `composer dump-env prod` no build (gera `.env.local.php`)
   - Imagem final: **641MB**; container `healthy`
   - Validado em produção: API responde (200), subresources POST/GET OK, `/token/*` rejeita entradas inválidas
+
+- [x] **Fase 1.6 — Refatoração DTO → Entidade** (concluída):
+  - Entidades `Partner`, `Project`, `ApiKey`, `Contractor` e `User` expostas diretamente como `#[ApiResource]` + `#[Groups]`; DTOs de input/output removidos
+  - `User` recuperou as operações REST: `GET`/`POST /contractors/{contractorId}/users` e `GET`/`PATCH /users/{id}`
+  - Novo `State\User\CreateProvider`; `UserPatchProcessor` reescrito para operar na entidade gerenciada (hash de senha via `previous_data`)
+  - `password` marcado com `#[ApiProperty(initializable: true)]` para permitir a denormalização no POST (contextos `api_allow_update=false`)
+  - `PrefixedIdNormalizer` e `PrefixedIdUriVariableTransformer` mantidos para os ValueObjects de ID prefixado
+  - `docs/WIP-refactor-dto-to-entity.md` removido
+  - Suíte total: **86 testes, 191 assertions — 100% verde**
 
 ## Retomando o trabalho (após desligar a máquina)
 

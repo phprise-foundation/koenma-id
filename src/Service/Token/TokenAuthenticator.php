@@ -32,7 +32,7 @@ final readonly class TokenAuthenticator
     {
         $user = $this->users->findOneByUsername($username);
 
-        if (!$user instanceof User || null !== $user->deletedAt() || !$user->active()) {
+        if (!$user instanceof User || null !== $user->getDeletedAt() || !$user->isActive()) {
             throw new UnauthorizedHttpException('Bearer', 'Invalid credentials.');
         }
 
@@ -45,7 +45,7 @@ final readonly class TokenAuthenticator
             return;
         }
 
-        $userPartnerId = $user->contractor()->partner()->id();
+        $userPartnerId = $user->getContractor()->getPartner()->getId();
 
         if (null === $scope->partnerId() || !$scope->partnerId()->equals($userPartnerId)) {
             throw new UnauthorizedHttpException('Bearer', 'Invalid credentials.');

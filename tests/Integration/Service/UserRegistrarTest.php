@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Tests\Integration\Service;
 
-use Phprise\KoenmaID\ApiResource\User\UserInput;
+use Phprise\KoenmaID\Entity\User;
 use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Phprise\KoenmaID\Service\User\UserRegistrar;
@@ -33,10 +33,10 @@ final class UserRegistrarTest extends KernelTestCase
         $contractor = $this->seedContractorWithKey('registrar-valid');
         $this->pushSecurityKey($this->securityKeyFor('registrar-valid'));
 
-        $user = $this->registrar->register($contractor, $this->buildInput('newuser'));
+        $user = $this->registrar->register($this->buildInput($contractor, 'newuser'));
 
-        self::assertSame('newuser', $user->username());
-        self::assertSame('newuser@example.com', $user->emailAddress());
+        self::assertSame('newuser', $user->getUsername());
+        self::assertSame('newuser@example.com', $user->getEmailAddress());
         self::assertNotSame('plain-password', $user->getPassword());
     }
 
@@ -47,7 +47,7 @@ final class UserRegistrarTest extends KernelTestCase
 
         $this->expectException(UnauthorizedHttpException::class);
 
-        $this->registrar->register($contractor, $this->buildInput('newuser'));
+        $this->registrar->register($this->buildInput($contractor, 'newuser'));
     }
 
     public function testRejectsSecurityKeyOfAnotherPartner(): void
@@ -58,7 +58,7 @@ final class UserRegistrarTest extends KernelTestCase
 
         $this->expectException(UnauthorizedHttpException::class);
 
-        $this->registrar->register($contractor, $this->buildInput('newuser'));
+        $this->registrar->register($this->buildInput($contractor, 'newuser'));
     }
 
     public function testRejectsDuplicateUsernameInSameContractor(): void
@@ -69,7 +69,7 @@ final class UserRegistrarTest extends KernelTestCase
 
         $this->expectException(ConflictHttpException::class);
 
-        $this->registrar->register($contractor, $this->buildInput('userdup'));
+        $this->registrar->register($this->buildInput($contractor, 'userdup'));
     }
 
     private function seedContractorWithKey(string $suffix): Contractor
@@ -101,13 +101,12 @@ final class UserRegistrarTest extends KernelTestCase
         $stack->push($request);
     }
 
-    private function buildInput(string $username): UserInput
+    private function buildInput(Contractor $contractor, string $username): User
     {
-        $input = new UserInput();
-        $input->username = $username;
-        $input->emailAddress = $username.'@example.com';
-        $input->password = 'plain-password';
-
-        return $input;
+        $user = (new User())->setContractor($contractor);
+        $user->setUsername($username);
+        $user->setEmailAddress($username.'@example.com');
+        $user->setPassword('plain-password');
+        return $user;
     }
 }

@@ -21,7 +21,7 @@ final class ProjectApiTest extends WebTestCase
     {
         $partner = $this->factory()->createPartner('proj-create');
 
-        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/projects', [], [], [
+        $this->client->request('POST', '/partners/'.$partner->getId()->toString().'/projects', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode([
             'name' => 'Project Alpha',
@@ -32,7 +32,7 @@ final class ProjectApiTest extends WebTestCase
         $payload = $this->decode();
         self::assertSame('Project Alpha', $payload['name']);
         self::assertSame('First project', $payload['description']);
-        self::assertSame($partner->id()->toString(), $payload['partnerId']);
+        self::assertSame($partner->getId()->toString(), $payload['partnerId']);
         self::assertArrayHasKey('id', $payload);
     }
 
@@ -40,7 +40,7 @@ final class ProjectApiTest extends WebTestCase
     {
         $partner = $this->factory()->createPartner('proj-invalid');
 
-        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/projects', [], [], [
+        $this->client->request('POST', '/partners/'.$partner->getId()->toString().'/projects', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode(['name' => ''], \JSON_THROW_ON_ERROR));
 
@@ -62,7 +62,7 @@ final class ProjectApiTest extends WebTestCase
         $this->factory()->createProject($partner, 'list-a');
         $this->factory()->createProject($partner, 'list-b');
 
-        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/projects');
+        $this->client->request('GET', '/partners/'.$partner->getId()->toString().'/projects');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
@@ -76,12 +76,12 @@ final class ProjectApiTest extends WebTestCase
         $this->factory()->createProject($partner, 'scope-a');
         $this->factory()->createProject($other, 'scope-b');
 
-        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/projects');
+        $this->client->request('GET', '/partners/'.$partner->getId()->toString().'/projects');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
         self::assertCount(1, $payload);
-        self::assertSame($partner->id()->toString(), $payload[0]['partnerId']);
+        self::assertSame($partner->getId()->toString(), $payload[0]['partnerId']);
     }
 
     public function testGetsProjectById(): void
@@ -89,11 +89,11 @@ final class ProjectApiTest extends WebTestCase
         $partner = $this->factory()->createPartner('proj-get');
         $project = $this->factory()->createProject($partner, 'get');
 
-        $this->client->request('GET', '/projects/'.$project->id()->toString());
+        $this->client->request('GET', '/projects/'.$project->getId()->toString());
 
         self::assertResponseIsSuccessful();
         $payload = $this->decode();
-        self::assertSame($project->id()->toString(), $payload['id']);
+        self::assertSame($project->getId()->toString(), $payload['id']);
     }
 
     public function testPatchesProject(): void
@@ -101,7 +101,7 @@ final class ProjectApiTest extends WebTestCase
         $partner = $this->factory()->createPartner('proj-patch');
         $project = $this->factory()->createProject($partner, 'patch');
 
-        $this->client->request('PATCH', '/projects/'.$project->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/projects/'.$project->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
         ], json_encode(['name' => 'Renamed Project'], \JSON_THROW_ON_ERROR));
 

@@ -33,6 +33,7 @@ final class PartnerApiTest extends WebTestCase
         ], \JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
+        fwrite(STDERR, "\nDEBUG: ".$this->client->getResponse()->getContent()."\n");
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Acme', $payload['name']);
         self::assertSame('acme@example.com', $payload['emailAddress']);
@@ -70,7 +71,7 @@ final class PartnerApiTest extends WebTestCase
         $factory = static::getContainer()->get(TestDataFactory::class);
         $partner = $factory->createPartner('patch');
 
-        $this->client->request('PATCH', '/partners/'.$partner->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/partners/'.$partner->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
             'HTTP_X_SECURITY_KEY' => self::MASTER_KEY,
         ], json_encode(['name' => 'Renamed'], \JSON_THROW_ON_ERROR));
@@ -98,7 +99,7 @@ final class PartnerApiTest extends WebTestCase
         $factory = static::getContainer()->get(TestDataFactory::class);
         $partner = $factory->createPartner('patch-no-key');
 
-        $this->client->request('PATCH', '/partners/'.$partner->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/partners/'.$partner->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
         ], json_encode(['name' => 'Renamed'], \JSON_THROW_ON_ERROR));
 

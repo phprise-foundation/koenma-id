@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Service\Security;
 
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\ValueObject\PartnerId;
 
 final readonly class SecurityScope
 {
     private function __construct(
         private bool $master,
-        private ?PartnerId $partnerId,
+        private ?Partner $partner,
     ) {
     }
 
@@ -19,9 +20,9 @@ final readonly class SecurityScope
         return new self(true, null);
     }
 
-    public static function partner(PartnerId $partnerId): self
+    public static function partner(Partner $partner): self
     {
-        return new self(false, $partnerId);
+        return new self(false, $partner);
     }
 
     public static function anonymous(): self
@@ -36,11 +37,16 @@ final readonly class SecurityScope
 
     public function isAnonymous(): bool
     {
-        return !$this->master && null === $this->partnerId;
+        return !$this->master && null === $this->partner;
+    }
+
+    public function getPartner(): ?Partner
+    {
+        return $this->partner;
     }
 
     public function partnerId(): ?PartnerId
     {
-        return $this->partnerId;
+        return $this->partner?->getId();
     }
 }

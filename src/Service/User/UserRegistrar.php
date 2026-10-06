@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Service\User;
 
-use Phprise\KoenmaID\ApiResource\User\UserInput;
 use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Entity\User;
 use Phprise\KoenmaID\Repository\UserRepository;
@@ -24,13 +23,18 @@ final readonly class UserRegistrar
     ) {
     }
 
-    public function register(Contractor $contractor, UserInput $input): User
+    public function register(User $user): User
     {
-        $this->assertSecurityKeyBelongsToContractor($contractor);
-        $this->assertUsernameIsAvailable($contractor, $input->username);
+        $contractor = $user->getContractor();
 
-        $user = new User($contractor, $input->username, $input->emailAddress);
-        $user->changePassword($this->passwordHasher->hashPassword($user, $input->password));
+        if (!$contractor instanceof Contractor) {
+            throw new \LogicException('User must be linked to a contractor before registration.');
+        }
+
+        $this->assertSecurityKeyBelongsToContractor($contractor);
+        $this->assertUsernameIsAvailable($contractor, $user->getUsername());
+
+        $user->changePassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -46,7 +50,7 @@ final readonly class UserRegistrar
             return;
         }
 
-        $partnerId = $contractor->partner()->id();
+        $partnerId = $contractor->getPartner()->getId();
 
         if (null === $scope->partnerId() || !$scope->partnerId()->equals($partnerId)) {
             throw new UnauthorizedHttpException('SecurityKey', 'Invalid security key for this contractor.');
