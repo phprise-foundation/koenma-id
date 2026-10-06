@@ -1,6 +1,6 @@
 # Arquitetura — Koenma ID
 
-> **Atualizado em:** 2026-09-29
+> **Atualizado em:** 2026-10-06
 > **Objetivo deste documento:** descrever a estrutura de arquivos e as
 > responsabilidades de cada camada, para que agentes e pessoas encontrem o que
 > precisam **sem abrir arquivos desnecessariamente** (economia de contexto/token)
@@ -35,13 +35,13 @@ State Provider  (GET)  ──►  Repository  ──►  Entity
 State Processor (POST/PATCH)  ──►  Service (regra de negócio)  ──►  Entity  ──►  Repository
    │
    ▼
-Output DTO  ──►  Serializer (grupos)  ──►  HTTP Response
+Entity (ou Output DTO de Token)  ──►  Serializer (grupos)  ──►  HTTP Response
 ```
 
 - **Não há controllers.** Toda rota nasce de um `ApiResource` + operações.
 - **Providers** leem; **Processors** escrevem. Ambos delegam para Repository/Service.
 - **Services** concentram a regra de negócio; nunca conhecem HTTP.
-- **DTOs** (`Input`/`Output`) isolam o contrato da API das entidades.
+- **Entidades** são expostas diretamente como `ApiResource` (Fase 1.6); só `Token` mantém DTOs (`Input`/`Output`).
 
 ---
 
@@ -49,24 +49,21 @@ Output DTO  ──►  Serializer (grupos)  ──►  HTTP Response
 
 ```
 src/
-├── ApiResource/        # Contrato da API: DTOs + ApiResources (rotas)
-│   ├── Partner/
-│   ├── Project/
-│   ├── ApiKey/
-│   ├── Contractor/
-│   ├── User/
+├── ApiResource/        # Contrato da API: apenas Token (DTOs + rotas)
 │   └── Token/
+├── ApiPlatform/        # UriVariableTransformer (IDs prefixados)
+│   └── UriVariableTransformer/
 ├── Doctrine/
 │   ├── IdGenerator/    # PrefixedIdGenerator (CustomIdGenerator)
 │   └── Type/           # AbstractPrefixedIdType + 6 tipos de ID
-├── Entity/             # Entidades Doctrine (6)
+├── Entity/             # Entidades Doctrine (6) + ApiResource direto (Fase 1.6)
 ├── Repository/         # Repositórios (6)
 ├── Service/            # Regras de negócio
 │   ├── ApiKey/
 │   ├── Contractor/
 │   ├── Partner/
 │   ├── Project/
-│   ├── Security/       # Resolução do header X-Security-Key e escopo
+│   ├── Security/       # Resolução do header X-Security-Key, escopo e tipo de chave
 │   ├── Token/
 │   └── User/
 ├── State/              # Providers e Processors do API Platform
@@ -76,6 +73,8 @@ src/
 │   ├── Contractor/
 │   ├── User/
 │   └── Token/
+├── Serializer/         # Normalizer de IDs prefixados
+│   └── Normalizer/
 ├── ValueObject/        # AbstractPrefixedId + 6 IDs (prefixo + ULID)
 └── Kernel.php
 ```
@@ -84,16 +83,17 @@ src/
 
 ## 4. Camadas em detalhe
 
-### 4.1 `ApiResource/` — contrato da API
+### 4.1 `ApiResource` — contrato da API
 
-Cada recurso tem 4 arquivos típicos:
+A partir da **Fase 1.6**, as entidades (`Partner`, `Project`, `ApiKey`,
+`Contractor`, `User`) são expostas **diretamente** como `#[ApiResource]` com
+grupos de serialização por método (`:post`, `:get`, `:patch`). Os DTOs de
+input/output dessas entidades foram removidos.
 
-| Arquivo | Papel |
+| Recurso | Contrato |
 |---|---|
-| `<Recurso>Resource.php` | `#[ApiResource]` com as operações (rotas, input, output, grupos, providers/processors) |
-| `<Recurso>Input.php` | DTO de criação (grupo `:post`) |
-| `<Recurso>PatchInput.php` | DTO de atualização parcial (grupo `:patch`) |
-| `<Recurso>Output.php` | DTO de resposta (grupo `:get`), com `fromEntity()` |
+| `Partner`, `Project`, `ApiKey`, `Contractor`, `User` | `#[ApiResource]` na própria entidade + `#[Groups]` |
+| `Token` | DTOs (`TokenCreateInput`, `TokenOutput`, ...) em `ApiResource/Token/` |
 
 **Recursos e rotas:**
 
@@ -159,8 +159,9 @@ Um repositório por entidade. `UserRepository` implementa `PasswordUpgraderInter
 
 | Serviço | Responsabilidade |
 |---|---|
-| `SecurityKeyContext` | Lê o header `X-Security-Key`, resolve a `ApiKey` (hash + não expirada) e devolve o `SecurityScope`; cacheia por request |
-| `SecurityScope` | Value object do escopo: `master()`, `partner(PartnerId)`, `anonymous()` |
+| `SecurityKeyContext` | Lê o header `X-Security-Key`, resolve a `ApiKey` (hash + não expirada) e devolve o `SecurityScope`; expõe `keyType()`; cacheia por request |
+| `SecurityScope` | Value object do escopo: `master()`, `partner(Partner)`, `anonymous()`; guarda a entidade `Partner` |
+| `SecurityKeyType` | enum `Master` / `Partner` / `Anonymous` |
 | `MasterSecurityKey` | Lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals` |
 
 O header é `X-Security-Key`. A chave em texto puro só é exibida uma vez, na
@@ -217,7 +218,11 @@ saída. São a "cola" entre o API Platform e o domínio.
 tests/
 ├── bootstrap.php
 ├── Factory/TestDataFactory.php          # cria dados de teste
-├── Unit/ValueObject/PrefixedIdTest.php  # ValueObjects de ID
+├── Unit/
+│   ├── Entity/                          # ContractorUnitTest, ProjectUnitTest
+│   ├── Service/                         # ApiKey, Contractor, Security, User
+│   │   └── Security/SecurityKeyTypeTest.php, SecurityScopeTest.php
+│   └── ValueObject/PrefixedIdTest.php
 ├── Integration/
 │   ├── Api/                             # HTTP (WebTestCase)
 │   │   ├── PartnerApiTest.php
@@ -225,7 +230,9 @@ tests/
 │   │   ├── ApiKeyApiTest.php
 │   │   ├── ContractorApiTest.php
 │   │   └── UserApiTest.php
-│   └── Service/UserRegistrarTest.php    # serviço (KernelTestCase)
+│   └── Service/
+│       ├── SecurityKeyContextTest.php   # keyType() (KernelTestCase)
+│       └── UserRegistrarTest.php
 └── EndToEnd/TokenFlowTest.php           # ciclo completo de tokens
 ```
 
@@ -255,10 +262,10 @@ tests/
 
 | Quero… | Mexo em… |
 |---|---|
-| Adicionar um campo a um recurso | `Entity/`, `ApiResource/<R>Input.php`, `<R>Output.php`, migration |
-| Adicionar uma rota | `ApiResource/<R>Resource.php` + Provider/Processor em `State/` |
+| Adicionar um campo a um recurso | `Entity/` (entidade `#[ApiResource]` + `#[Groups]`) + migration |
+| Adicionar uma rota | entidade `#[ApiResource]` (operações) + Provider/Processor em `State/` |
 | Mudar regra de negócio | `Service/<área>/` |
-| Mudar o contrato da API | `ApiResource/<R>Input.php` / `<R>Output.php` (grupos) |
+| Mudar o contrato da API | entidade (grupos `#[Groups]`) ou `ApiResource/Token/` para Token |
 | Adicionar um tipo de ID | `ValueObject/`, `Doctrine/Type/`, registrar em `doctrine.yaml` |
 | Mudar o schema | `bin/console make:migration` (nunca `schema:update`) |
 | Adicionar um teste | `tests/` na pasta correspondente ao tipo |
@@ -268,6 +275,7 @@ tests/
 ## 9. Convenções rápidas
 
 - **Sem controllers** — tudo via `ApiResource` + State.
+- **Sem DTOs de entidade** (Fase 1.6) — entidades expostas diretamente; só `Token` usa DTOs.
 - **Sem PUT** — apenas `POST`, `GET`, `PATCH`.
 - **Sem prefixo `/api`** — rotas na raiz.
 - **Grupos de serialização por método** (`:post`, `:get`, `:patch`).

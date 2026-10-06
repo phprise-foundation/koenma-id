@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-06
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); suíte 100% verde
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()` testado; suíte 100% verde
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -176,6 +176,13 @@ vai contra o combinado.
   - `PrefixedIdNormalizer` e `PrefixedIdUriVariableTransformer` mantidos para os ValueObjects de ID prefixado
   - `docs/WIP-refactor-dto-to-entity.md` removido
   - Suíte total: **86 testes, 191 assertions — 100% verde**
+- [x] **RFC-002-1-2-3-1 — Testes de integração para `SecurityKeyContext::keyType()`** (concluída):
+  - Novo enum `Service\Security\SecurityKeyType` (`Master`, `Partner`, `Anonymous`)
+  - `SecurityKeyContext::keyType()` distingue Master Key, chave de parceiro e anônimo
+  - `SecurityScope` passou a guardar a entidade `Partner` (antes `PartnerId`); `partnerId()` derivado de `getId()`
+  - Testes de integração em `SecurityKeyContextTest` (10 testes, 12 asserções) com dados reais persistidos
+  - Suíte total: **104 testes, 243 assertions — 100% verde**
+  - Merge em `main` via PR #1; release **v0.1.1**
 
 ## Retomando o trabalho (após desligar a máquina)
 

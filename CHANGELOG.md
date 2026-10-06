@@ -7,6 +7,23 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.1.1] — 2026-10-06
+
+### Adicionado
+
+- **`SecurityKeyType`** (enum `Master`/`Partner`/`Anonymous`) e `SecurityKeyContext::keyType()`
+- **Testes de integração** em `SecurityKeyContextTest` para `keyType()` (Master, Partner, Anonymous) com dados reais persistidos
+
+### Alterado
+
+- **`SecurityScope`** agora guarda a entidade `Partner` (antes `PartnerId`); `partnerId()` derivado de `getId()`
+
+### Testes
+
+- Suíte total: **104 testes, 243 assertions** (100% verde)
+
+---
+
 ## [Unreleased]
 
 ### Adicionado
