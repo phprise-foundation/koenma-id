@@ -40,7 +40,7 @@ final readonly class ApiKeyDeleteProcessor implements ProcessorInterface
     {
         $apiKey = $this->apiKeys->find($id);
 
-        if (!$apiKey instanceof ApiKey || null !== $apiKey->deletedAt()) {
+        if (!$apiKey instanceof ApiKey || null !== $apiKey->getDeletedAt()) {
             throw new NotFoundHttpException('ApiKey not found.');
         }
 
@@ -55,7 +55,7 @@ final readonly class ApiKeyDeleteProcessor implements ProcessorInterface
             return;
         }
 
-        $partnerId = $apiKey->project()->partner()->id();
+        $partnerId = $apiKey->getProject()->getPartner()->getId();
 
         if (null === $scope->partnerId() || !$scope->partnerId()->equals($partnerId)) {
             throw new UnauthorizedHttpException('SecurityKey', 'Invalid security key for this API key.');

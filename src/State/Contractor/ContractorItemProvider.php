@@ -6,13 +6,12 @@ namespace Phprise\KoenmaID\State\Contractor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\Contractor\ContractorOutput;
 use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Repository\ContractorRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProviderInterface<ContractorOutput>
+ * @implements ProviderInterface<Contractor>
  */
 final readonly class ContractorItemProvider implements ProviderInterface
 {
@@ -20,14 +19,14 @@ final readonly class ContractorItemProvider implements ProviderInterface
     {
     }
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): ContractorOutput
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): Contractor
     {
         $contractor = $this->contractors->find($uriVariables['id'] ?? null);
 
-        if (!$contractor instanceof Contractor || null !== $contractor->deletedAt()) {
+        if (!$contractor instanceof Contractor || null !== $contractor->getDeletedAt()) {
             throw new NotFoundHttpException('Contractor not found.');
         }
 
-        return ContractorOutput::fromEntity($contractor);
+        return $contractor;
     }
 }

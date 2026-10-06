@@ -23,7 +23,7 @@ final class UserApiTest extends WebTestCase
     {
         $contractor = $this->seedContractorWithKey('user-create');
 
-        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->getId()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('user-create'),
         ], json_encode([
@@ -36,7 +36,7 @@ final class UserApiTest extends WebTestCase
         $payload = $this->decode();
         self::assertSame('newuser', $payload['username']);
         self::assertSame('newuser@example.com', $payload['emailAddress']);
-        self::assertSame($contractor->id()->toString(), $payload['contractorId']);
+        self::assertSame($contractor->getId()->toString(), $payload['contractorId']);
         self::assertArrayHasKey('id', $payload);
     }
 
@@ -44,7 +44,7 @@ final class UserApiTest extends WebTestCase
     {
         $contractor = $this->seedContractorWithKey('user-invalid');
 
-        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->getId()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('user-invalid'),
         ], json_encode([
@@ -60,7 +60,7 @@ final class UserApiTest extends WebTestCase
     {
         $contractor = $this->seedContractorWithKey('user-no-key');
 
-        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->getId()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode([
             'username' => 'newuser',
@@ -76,7 +76,7 @@ final class UserApiTest extends WebTestCase
         $contractor = $this->seedContractorWithKey('user-own');
         $this->seedContractorWithKey('user-other');
 
-        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->getId()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_SECURITY_KEY' => 'sk_OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
         ], json_encode([
@@ -132,7 +132,7 @@ final class UserApiTest extends WebTestCase
         $this->factory()->createUser($contractor, 'plain-password', 'list-a');
         $this->factory()->createUser($contractor, 'plain-password', 'list-b');
 
-        $this->client->request('GET', '/contractors/'.$contractor->id()->toString().'/users');
+        $this->client->request('GET', '/contractors/'.$contractor->getId()->toString().'/users');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
@@ -147,12 +147,12 @@ final class UserApiTest extends WebTestCase
         $this->factory()->createUser($contractor, 'plain-password', 'scope-a');
         $this->factory()->createUser($other, 'plain-password', 'scope-b');
 
-        $this->client->request('GET', '/contractors/'.$contractor->id()->toString().'/users');
+        $this->client->request('GET', '/contractors/'.$contractor->getId()->toString().'/users');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
         self::assertCount(1, $payload);
-        self::assertSame($contractor->id()->toString(), $payload[0]['contractorId']);
+        self::assertSame($contractor->getId()->toString(), $payload[0]['contractorId']);
     }
 
     public function testGetsUserById(): void
@@ -161,11 +161,11 @@ final class UserApiTest extends WebTestCase
         $contractor = $this->factory()->createContractor($partner, 'get');
         $user = $this->factory()->createUser($contractor, 'plain-password', 'get');
 
-        $this->client->request('GET', '/users/'.$user->id()->toString());
+        $this->client->request('GET', '/users/'.$user->getId()->toString());
 
         self::assertResponseIsSuccessful();
         $payload = $this->decode();
-        self::assertSame($user->id()->toString(), $payload['id']);
+        self::assertSame($user->getId()->toString(), $payload['id']);
     }
 
     public function testPatchesUser(): void
@@ -174,7 +174,7 @@ final class UserApiTest extends WebTestCase
         $contractor = $this->factory()->createContractor($partner, 'patch');
         $user = $this->factory()->createUser($contractor, 'plain-password', 'patch');
 
-        $this->client->request('PATCH', '/users/'.$user->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/users/'.$user->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
         ], json_encode(['username' => 'renameduser'], \JSON_THROW_ON_ERROR));
 
@@ -206,7 +206,7 @@ final class UserApiTest extends WebTestCase
 
     private function createUser(\Phprise\KoenmaID\Entity\Contractor $contractor, string $username, string $suffix): void
     {
-        $this->client->request('POST', '/contractors/'.$contractor->id()->toString().'/users', [], [], [
+        $this->client->request('POST', '/contractors/'.$contractor->getId()->toString().'/users', [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor($suffix),
         ], json_encode([

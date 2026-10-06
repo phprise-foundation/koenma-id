@@ -4,15 +4,67 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use Phprise\KoenmaID\Doctrine\IdGenerator\PrefixedIdGenerator;
 use Phprise\KoenmaID\Doctrine\Type\ContractorIdType;
 use Phprise\KoenmaID\Repository\ContractorRepository;
+use Phprise\KoenmaID\State\Contractor\ContractorCollectionProvider;
+use Phprise\KoenmaID\State\Contractor\ContractorItemProvider;
+use Phprise\KoenmaID\State\Contractor\ContractorPatchProcessor;
+use Phprise\KoenmaID\State\Contractor\ContractorPostProcessor;
+use Phprise\KoenmaID\State\Contractor\CreateProvider;
 use Phprise\KoenmaID\ValueObject\ContractorId;
+use Phprise\KoenmaID\ValueObject\PartnerId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+#[ApiResource(
+    description: 'A contractor belongs to a partner and groups the users that authenticate with username and password.',
+    shortName: 'Contractor',
+    operations: [
+        new GetCollection(
+            openapi: new OpenApiOperation(summary: 'List contractors of a partner', description: 'Returns every contractor that belongs to the given partner.'),
+            uriTemplate: '/partners/{partnerId}/contractors',
+            uriVariables: ['partnerId' => new Link(fromClass: Partner::class, toProperty: 'partner')],
+            provider: ContractorCollectionProvider::class,
+            normalizationContext: ['groups' => ['contractor:get']],
+        ),
+        new Get(
+            openapi: new OpenApiOperation(summary: 'Get a contractor', description: 'Returns a single contractor by its identifier.'),
+            uriTemplate: '/contractors/{id}',
+            provider: ContractorItemProvider::class,
+            normalizationContext: ['groups' => ['contractor:get']],
+        ),
+        new Post(
+            openapi: new OpenApiOperation(summary: 'Create a contractor', description: 'Registers a new contractor under the given partner.'),
+            uriTemplate: '/partners/{partnerId}/contractors',
+            uriVariables: ['partnerId' => new Link(fromClass: Partner::class, toProperty: 'partner')],
+            provider: CreateProvider::class,
+            processor: ContractorPostProcessor::class,
+            denormalizationContext: ['groups' => ['contractor:post']],
+            validationContext: ['groups' => ['contractor:post']],
+            normalizationContext: ['groups' => ['contractor:get']],
+        ),
+        new Patch(
+            openapi: new OpenApiOperation(summary: 'Update a contractor', description: 'Updates the name of a contractor.'),
+            uriTemplate: '/contractors/{id}',
+            provider: ContractorItemProvider::class,
+            processor: ContractorPatchProcessor::class,
+            denormalizationContext: ['groups' => ['contractor:patch']],
+            validationContext: ['groups' => ['contractor:patch']],
+            normalizationContext: ['groups' => ['contractor:get']],
+        ),
+    ],
+)]
 #[ORM\Entity(repositoryClass: ContractorRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Contractor
@@ -25,17 +77,19 @@ class Contractor
 
     #[ORM\ManyToOne(targetEntity: Partner::class, inversedBy: 'contractors')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull]
-    private Partner $partner;
+    #[Assert\NotNull(groups: ['contractor:post'])]
+    private ?Partner $partner = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank(groups: ['contractor:post'])]
+    #[Assert\Length(max: 255, groups: ['contractor:post', 'contractor:patch'])]
+    #[Groups(['contractor:post', 'contractor:patch'])]
     private string $name;
 
     #[ORM\Column(length: 32, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 32)]
+    #[Assert\NotBlank(groups: ['contractor:post'])]
+    #[Assert\Length(max: 32, groups: ['contractor:post'])]
+    #[Groups(['contractor:post'])]
     private string $document;
 
     #[ORM\Column]
@@ -54,11 +108,8 @@ class Contractor
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'contractor')]
     private Collection $users;
 
-    public function __construct(Partner $partner, string $name, string $document)
+    public function __construct()
     {
-        $this->partner = $partner;
-        $this->name = $name;
-        $this->document = $document;
         $this->users = new ArrayCollection();
     }
 
@@ -75,19 +126,42 @@ class Contractor
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function id(): ?ContractorId
+    #[Groups(['contractor:get'])]
+    public function getId(): ?ContractorId
     {
         return $this->id;
     }
 
-    public function partner(): Partner
+    public function getPartner(): ?Partner
     {
         return $this->partner;
     }
 
-    public function name(): string
+    public function setPartner(Partner $partner): static
+    {
+        $this->partner = $partner;
+
+        return $this;
+    }
+
+    #[Groups(['contractor:get'])]
+    public function getPartnerId(): ?PartnerId
+    {
+        return $this->partner?->getId();
+    }
+
+    #[Groups(['contractor:get'])]
+    public function getName(): string
     {
         return $this->name;
+    }
+
+    #[Groups(['contractor:patch'])]
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     public function rename(string $name): void
@@ -95,12 +169,22 @@ class Contractor
         $this->name = $name;
     }
 
-    public function document(): string
+    #[Groups(['contractor:get'])]
+    public function getDocument(): string
     {
         return $this->document;
     }
 
-    public function active(): bool
+    #[Groups(['contractor:post'])]
+    public function setDocument(string $document): static
+    {
+        $this->document = $document;
+
+        return $this;
+    }
+
+    #[Groups(['contractor:get'])]
+    public function isActive(): bool
     {
         return $this->active;
     }
@@ -115,7 +199,8 @@ class Contractor
         $this->active = true;
     }
 
-    public function createdAt(): \DateTimeImmutable
+    #[Groups(['contractor:get'])]
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -125,7 +210,7 @@ class Contractor
         return $this->updatedAt;
     }
 
-    public function deletedAt(): ?\DateTimeImmutable
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
     }

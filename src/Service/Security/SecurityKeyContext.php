@@ -38,6 +38,21 @@ final class SecurityKeyContext
         return $this->cachedScope;
     }
 
+    public function keyType(): SecurityKeyType
+    {
+        $scope = $this->scope();
+
+        if ($scope->isMaster()) {
+            return SecurityKeyType::Master;
+        }
+
+        if (null !== $scope->getPartner()) {
+            return SecurityKeyType::Partner;
+        }
+
+        return SecurityKeyType::Anonymous;
+    }
+
     private function resolve(?Request $request): SecurityScope
     {
         $header = $this->headerValue($request);
@@ -61,7 +76,7 @@ final class SecurityKeyContext
             return SecurityScope::anonymous();
         }
 
-        return SecurityScope::partner($apiKey->project()->partner()->id());
+        return SecurityScope::partner($apiKey->getProject()->getPartner());
     }
 
     private function findValidApiKey(string $header): ?ApiKey
@@ -78,7 +93,7 @@ final class SecurityKeyContext
             return null;
         }
 
-        if (null !== $apiKey->deletedAt()) {
+        if (null !== $apiKey->getDeletedAt()) {
             return null;
         }
 

@@ -6,13 +6,13 @@ namespace Phprise\KoenmaID\State\Project;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\Project\ProjectOutput;
 use Phprise\KoenmaID\Entity\Partner;
+use Phprise\KoenmaID\Entity\Project;
 use Phprise\KoenmaID\Repository\PartnerRepository;
 use Phprise\KoenmaID\Repository\ProjectRepository;
 
 /**
- * @implements ProviderInterface<ProjectOutput>
+ * @implements ProviderInterface<Project>
  */
 final readonly class ProjectCollectionProvider implements ProviderInterface
 {
@@ -23,7 +23,7 @@ final readonly class ProjectCollectionProvider implements ProviderInterface
     }
 
     /**
-     * @return list<ProjectOutput>
+     * @return list<Project>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
@@ -33,12 +33,6 @@ final readonly class ProjectCollectionProvider implements ProviderInterface
             return [];
         }
 
-        $outputs = [];
-
-        foreach ($this->projects->findBy(['partner' => $partner, 'deletedAt' => null]) as $project) {
-            $outputs[] = ProjectOutput::fromEntity($project);
-        }
-
-        return $outputs;
+        return $this->projects->findBy(['partner' => $partner, 'deletedAt' => null]);
     }
 }

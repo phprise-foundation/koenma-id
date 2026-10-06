@@ -25,7 +25,7 @@ final readonly class TokenRefresher
         $refreshToken->revoke();
         $this->entityManager->flush();
 
-        return $this->issuer->issue($refreshToken->user());
+        return $this->issuer->issue($refreshToken->getUser());
     }
 
     private function resolveUsableToken(string $plainRefreshToken): RefreshToken

@@ -47,7 +47,7 @@ final readonly class TokenVerifier
             return false;
         }
 
-        $userPartnerId = $user->contractor()->partner()->id();
+        $userPartnerId = $user->getContractor()->getPartner()->getId();
 
         return null !== $scope->partnerId() && $scope->partnerId()->equals($userPartnerId);
     }

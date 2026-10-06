@@ -11,6 +11,15 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- **Fase 1.6 — Refatoração DTO → Entidade**:
+  - Entidades `Partner`, `Project`, `ApiKey`, `Contractor` e `User` expostas diretamente como `#[ApiResource]` + `#[Groups]`
+  - DTOs `*Input`/`*Output`/`*PatchInput` e as `*Resource` intermediárias removidos
+  - Rotas de `User` restauradas: `GET`/`POST /contractors/{contractorId}/users` e `GET`/`PATCH /users/{id}`
+  - `State\User\CreateProvider` criado; `UserPatchProcessor` reescrito para operar na entidade gerenciada (hash de senha via `previous_data`)
+  - `password` anotado com `#[ApiProperty(initializable: true)]` para permitir a denormalização no POST
+  - `docs/WIP-refactor-dto-to-entity.md` removido
+- **Testes**: suíte 100% verde (**86 testes, 191 assertions**)
+
 - **Governança de documentos**:
   - `AGENTS.md` reescrito: a doutrina (`docs/PHILOSOPHY.md`) como regra inegociável, ordem de prioridade dos documentos, fluxo obrigatório (ler antes de iniciar / atualizar ao finalizar) e a regra de escrever arquivos via script (`python`/`sh`)
   - `docs/ARCHITECTURE.md`: mapa de camadas, fluxo de requisição, estrutura de pastas e guia "onde mexer para cada tipo de mudança"

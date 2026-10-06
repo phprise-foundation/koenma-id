@@ -21,7 +21,7 @@ final class ContractorApiTest extends WebTestCase
     {
         $partner = $this->factory()->createPartner('ctr-create');
 
-        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/contractors', [], [], [
+        $this->client->request('POST', '/partners/'.$partner->getId()->toString().'/contractors', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode([
             'name' => 'Contractor Alpha',
@@ -32,14 +32,14 @@ final class ContractorApiTest extends WebTestCase
         $payload = $this->decode();
         self::assertSame('Contractor Alpha', $payload['name']);
         self::assertSame('doc-ctr-alpha', $payload['document']);
-        self::assertSame($partner->id()->toString(), $payload['partnerId']);
+        self::assertSame($partner->getId()->toString(), $payload['partnerId']);
     }
 
     public function testRejectsInvalidContractorPayload(): void
     {
         $partner = $this->factory()->createPartner('ctr-invalid');
 
-        $this->client->request('POST', '/partners/'.$partner->id()->toString().'/contractors', [], [], [
+        $this->client->request('POST', '/partners/'.$partner->getId()->toString().'/contractors', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode(['name' => '', 'document' => ''], \JSON_THROW_ON_ERROR));
 
@@ -61,7 +61,7 @@ final class ContractorApiTest extends WebTestCase
         $this->factory()->createContractor($partner, 'list-a');
         $this->factory()->createContractor($partner, 'list-b');
 
-        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/contractors');
+        $this->client->request('GET', '/partners/'.$partner->getId()->toString().'/contractors');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
@@ -75,12 +75,12 @@ final class ContractorApiTest extends WebTestCase
         $this->factory()->createContractor($partner, 'scope-a');
         $this->factory()->createContractor($other, 'scope-b');
 
-        $this->client->request('GET', '/partners/'.$partner->id()->toString().'/contractors');
+        $this->client->request('GET', '/partners/'.$partner->getId()->toString().'/contractors');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
         self::assertCount(1, $payload);
-        self::assertSame($partner->id()->toString(), $payload[0]['partnerId']);
+        self::assertSame($partner->getId()->toString(), $payload[0]['partnerId']);
     }
 
     public function testGetsContractorById(): void
@@ -88,11 +88,11 @@ final class ContractorApiTest extends WebTestCase
         $partner = $this->factory()->createPartner('ctr-get');
         $contractor = $this->factory()->createContractor($partner, 'get');
 
-        $this->client->request('GET', '/contractors/'.$contractor->id()->toString());
+        $this->client->request('GET', '/contractors/'.$contractor->getId()->toString());
 
         self::assertResponseIsSuccessful();
         $payload = $this->decode();
-        self::assertSame($contractor->id()->toString(), $payload['id']);
+        self::assertSame($contractor->getId()->toString(), $payload['id']);
     }
 
     public function testPatchesContractor(): void
@@ -100,7 +100,7 @@ final class ContractorApiTest extends WebTestCase
         $partner = $this->factory()->createPartner('ctr-patch');
         $contractor = $this->factory()->createContractor($partner, 'patch');
 
-        $this->client->request('PATCH', '/contractors/'.$contractor->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/contractors/'.$contractor->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
         ], json_encode(['name' => 'Renamed Contractor'], \JSON_THROW_ON_ERROR));
 

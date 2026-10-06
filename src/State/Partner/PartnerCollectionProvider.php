@@ -6,11 +6,11 @@ namespace Phprise\KoenmaID\State\Partner;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\Partner\PartnerOutput;
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Repository\PartnerRepository;
 
 /**
- * @implements ProviderInterface<PartnerOutput>
+ * @implements ProviderInterface<Partner>
  */
 final readonly class PartnerCollectionProvider implements ProviderInterface
 {
@@ -19,15 +19,10 @@ final readonly class PartnerCollectionProvider implements ProviderInterface
     }
 
     /**
-     * @return list<PartnerOutput>
+     * @return list<Partner>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        $outputs = [];
-        foreach ($this->partners->findBy(['deletedAt' => null]) as $partner) {
-            $outputs[] = PartnerOutput::fromEntity($partner);
-        }
-
-        return $outputs;
+        return $this->partners->findBy(['deletedAt' => null]);
     }
 }

@@ -25,13 +25,12 @@ final readonly class ApiKeyIssuer
         $plainKey = $this->generatePlainKey();
         $expiresAt = $this->resolveExpiration($expiresInDays);
 
-        $apiKey = new ApiKey(
-            $project,
-            $name,
-            $this->hash($plainKey),
-            substr($plainKey, 0, self::PREFIX_LENGTH),
-            substr($plainKey, -self::SUFFIX_LENGTH),
-        );
+        $apiKey = new ApiKey();
+        $apiKey->setProject($project);
+        $apiKey->setName($name);
+        $apiKey->setKeyHash($this->hash($plainKey));
+        $apiKey->setKeyPrefix(substr($plainKey, 0, self::PREFIX_LENGTH));
+        $apiKey->setKeySuffix(substr($plainKey, -self::SUFFIX_LENGTH));
         $apiKey->expireAt($expiresAt);
 
         $this->entityManager->persist($apiKey);

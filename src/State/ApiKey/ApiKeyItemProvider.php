@@ -6,13 +6,12 @@ namespace Phprise\KoenmaID\State\ApiKey;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\ApiKey\ApiKeyOutput;
 use Phprise\KoenmaID\Entity\ApiKey;
 use Phprise\KoenmaID\Repository\ApiKeyRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProviderInterface<ApiKeyOutput>
+ * @implements ProviderInterface<ApiKey>
  */
 final readonly class ApiKeyItemProvider implements ProviderInterface
 {
@@ -20,14 +19,14 @@ final readonly class ApiKeyItemProvider implements ProviderInterface
     {
     }
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): ApiKeyOutput
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): ApiKey
     {
         $apiKey = $this->apiKeys->find($uriVariables['id'] ?? null);
 
-        if (!$apiKey instanceof ApiKey || null !== $apiKey->deletedAt()) {
+        if (!$apiKey instanceof ApiKey || null !== $apiKey->getDeletedAt()) {
             throw new NotFoundHttpException('ApiKey not found.');
         }
 
-        return ApiKeyOutput::fromEntity($apiKey);
+        return $apiKey;
     }
 }

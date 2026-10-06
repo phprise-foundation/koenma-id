@@ -21,14 +21,14 @@ final class ApiKeyApiTest extends WebTestCase
     {
         $project = $this->seedProject('key-create');
 
-        $this->client->request('POST', '/projects/'.$project->id()->toString().'/api-keys', [], [], [
+        $this->client->request('POST', '/projects/'.$project->getId()->toString().'/api-keys', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode(['name' => 'Key Alpha'], \JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
         $payload = $this->decode();
         self::assertSame('Key Alpha', $payload['name']);
-        self::assertSame($project->id()->toString(), $payload['projectId']);
+        self::assertSame($project->getId()->toString(), $payload['projectId']);
         self::assertArrayHasKey('keyPrefix', $payload);
         self::assertArrayHasKey('keySuffix', $payload);
         self::assertArrayHasKey('securityKey', $payload);
@@ -39,7 +39,7 @@ final class ApiKeyApiTest extends WebTestCase
     {
         $project = $this->seedProject('key-once');
 
-        $this->client->request('POST', '/projects/'.$project->id()->toString().'/api-keys', [], [], [
+        $this->client->request('POST', '/projects/'.$project->getId()->toString().'/api-keys', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode(['name' => 'Key Once'], \JSON_THROW_ON_ERROR));
 
@@ -58,7 +58,7 @@ final class ApiKeyApiTest extends WebTestCase
     {
         $project = $this->seedProject('key-invalid');
 
-        $this->client->request('POST', '/projects/'.$project->id()->toString().'/api-keys', [], [], [
+        $this->client->request('POST', '/projects/'.$project->getId()->toString().'/api-keys', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], json_encode(['name' => ''], \JSON_THROW_ON_ERROR));
 
@@ -80,7 +80,7 @@ final class ApiKeyApiTest extends WebTestCase
         $this->factory()->createApiKey($project, 'plain-key-a', 'list-a');
         $this->factory()->createApiKey($project, 'plain-key-b', 'list-b');
 
-        $this->client->request('GET', '/projects/'.$project->id()->toString().'/api-keys');
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
@@ -95,12 +95,12 @@ final class ApiKeyApiTest extends WebTestCase
         $this->factory()->createApiKey($project, 'plain-key-scope-a', 'scope-a');
         $this->factory()->createApiKey($other, 'plain-key-scope-b', 'scope-b');
 
-        $this->client->request('GET', '/projects/'.$project->id()->toString().'/api-keys');
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
         self::assertCount(1, $payload);
-        self::assertSame($project->id()->toString(), $payload[0]['projectId']);
+        self::assertSame($project->getId()->toString(), $payload[0]['projectId']);
     }
 
     public function testListsOnlyNonExpiredApiKeys(): void
@@ -109,7 +109,7 @@ final class ApiKeyApiTest extends WebTestCase
         $this->factory()->createApiKey($project, 'plain-key-active', 'active');
         $this->factory()->createApiKey($project, 'plain-key-expired', 'expired', new \DateTimeImmutable('-1 day'));
 
-        $this->client->request('GET', '/projects/'.$project->id()->toString().'/api-keys');
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
 
         self::assertResponseIsSuccessful();
         $payload = $this->decodeCollection();
@@ -121,11 +121,11 @@ final class ApiKeyApiTest extends WebTestCase
         $project = $this->seedProject('key-get');
         $apiKey = $this->factory()->createApiKey($project, 'plain-key-get', 'get');
 
-        $this->client->request('GET', '/api-keys/'.$apiKey->id()->toString());
+        $this->client->request('GET', '/api-keys/'.$apiKey->getId()->toString());
 
         self::assertResponseIsSuccessful();
         $payload = $this->decode();
-        self::assertSame($apiKey->id()->toString(), $payload['id']);
+        self::assertSame($apiKey->getId()->toString(), $payload['id']);
     }
 
     public function testPatchesApiKey(): void
@@ -133,7 +133,7 @@ final class ApiKeyApiTest extends WebTestCase
         $project = $this->seedProject('key-patch');
         $apiKey = $this->factory()->createApiKey($project, 'plain-key-patch', 'patch');
 
-        $this->client->request('PATCH', '/api-keys/'.$apiKey->id()->toString(), [], [], [
+        $this->client->request('PATCH', '/api-keys/'.$apiKey->getId()->toString(), [], [], [
             'CONTENT_TYPE' => 'application/merge-patch+json',
         ], json_encode(['name' => 'Renamed Key'], \JSON_THROW_ON_ERROR));
 
@@ -147,13 +147,13 @@ final class ApiKeyApiTest extends WebTestCase
         $project = $this->seedProjectWithKey('key-delete');
         $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete', 'delete');
 
-        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString(), [], [], [
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->getId()->toString(), [], [], [
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('key-delete'),
         ]);
 
         self::assertResponseStatusCodeSame(204);
 
-        $this->client->request('GET', '/api-keys/'.$apiKey->id()->toString());
+        $this->client->request('GET', '/api-keys/'.$apiKey->getId()->toString());
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -162,7 +162,7 @@ final class ApiKeyApiTest extends WebTestCase
         $project = $this->seedProjectWithKey('key-delete-no-key');
         $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete-no-key', 'delete-no-key');
 
-        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString());
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->getId()->toString());
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -173,7 +173,7 @@ final class ApiKeyApiTest extends WebTestCase
         $this->seedProjectWithKey('key-delete-other');
         $apiKey = $this->factory()->createApiKey($project, 'plain-key-delete-own', 'delete-own');
 
-        $this->client->request('DELETE', '/api-keys/'.$apiKey->id()->toString(), [], [], [
+        $this->client->request('DELETE', '/api-keys/'.$apiKey->getId()->toString(), [], [], [
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('key-delete-other'),
         ]);
 
@@ -185,6 +185,32 @@ final class ApiKeyApiTest extends WebTestCase
         $this->client->request('GET', '/api-keys/aky_01M2BW4T17D5EG03XCJ8XG0ARR');
 
         self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testAcceptsExpirationInDays(): void
+    {
+        $project = $this->seedProject('key-expiring');
+
+        $this->client->request('POST', '/projects/'.$project->getId()->toString().'/api-keys', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode(['name' => 'Expiring Key', 'expiresInDays' => 30], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(201);
+        $payload = $this->decode();
+        self::assertArrayHasKey('expiresAt', $payload);
+        self::assertNotNull($payload['expiresAt']);
+        self::assertArrayNotHasKey('expiresInDays', $payload);
+    }
+
+    public function testRejectsNonPositiveExpirationInDays(): void
+    {
+        $project = $this->seedProject('key-bad-expiry');
+
+        $this->client->request('POST', '/projects/'.$project->getId()->toString().'/api-keys', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode(['name' => 'Bad Expiry', 'expiresInDays' => 0], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(422);
     }
 
     private function seedProject(string $suffix): \Phprise\KoenmaID\Entity\Project

@@ -35,6 +35,19 @@
 
 ---
 
+## Fase 1.6 — Refatoração DTO → Entidade (concluída)
+
+**Objetivo:** eliminar os DTOs de entrada/saída e expor as entidades diretamente
+como `#[ApiResource]`, mantendo os grupos de serialização por método.
+
+- [x] `Partner`, `Project`, `ApiKey`, `Contractor` e `User` expostos como `ApiResource` direto
+- [x] Remoção dos DTOs `*Input`/`*Output`/`*PatchInput` e das `*Resource` intermediárias
+- [x] Restauração das rotas de `User` (`/contractors/{contractorId}/users` e `/users/{id}`)
+- [x] Providers/Processors ajustados para a entidade direta (`CreateProvider` de `User`, hash de senha no PATCH)
+- [x] Suíte de testes 100% verde (**86 testes, 191 assertions**)
+
+---
+
 ## Fase 2 — Verificação de Email
 
 **Objetivo:** garantir que o email do Partner é válido antes de liberar operações.

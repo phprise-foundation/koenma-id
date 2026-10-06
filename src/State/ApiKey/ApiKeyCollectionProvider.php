@@ -6,13 +6,13 @@ namespace Phprise\KoenmaID\State\ApiKey;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Phprise\KoenmaID\ApiResource\ApiKey\ApiKeyOutput;
+use Phprise\KoenmaID\Entity\ApiKey;
 use Phprise\KoenmaID\Entity\Project;
 use Phprise\KoenmaID\Repository\ApiKeyRepository;
 use Phprise\KoenmaID\Repository\ProjectRepository;
 
 /**
- * @implements ProviderInterface<ApiKeyOutput>
+ * @implements ProviderInterface<ApiKey>
  */
 final readonly class ApiKeyCollectionProvider implements ProviderInterface
 {
@@ -23,7 +23,7 @@ final readonly class ApiKeyCollectionProvider implements ProviderInterface
     }
 
     /**
-     * @return list<ApiKeyOutput>
+     * @return list<ApiKey>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
@@ -33,12 +33,6 @@ final readonly class ApiKeyCollectionProvider implements ProviderInterface
             return [];
         }
 
-        $outputs = [];
-
-        foreach ($this->apiKeys->findActiveByProject($project) as $apiKey) {
-            $outputs[] = ApiKeyOutput::fromEntity($apiKey);
-        }
-
-        return $outputs;
+        return $this->apiKeys->findActiveByProject($project);
     }
 }
