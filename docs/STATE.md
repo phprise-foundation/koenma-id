@@ -183,6 +183,11 @@ vai contra o combinado.
   - Testes de integração em `SecurityKeyContextTest` (10 testes, 12 asserções) com dados reais persistidos
   - Suíte total: **104 testes, 243 assertions — 100% verde**
   - Merge em `main` via PR #1; release **v0.1.1**
+- [x] **RFC-002-1-2-3-2 — Testes unitários de chaves de parceiro inválidas** (merge em `main`; em testing):
+  - `SecurityKeyTypeTest` ganhou 2 testes: chave deletada (`getDeletedAt() != null`) e expirada (`isExpired() == true`) resolvem para `SecurityKeyType::Anonymous`
+  - Helper `apiKey()` estendido para aceitar `deletedAt` e `expired`
+  - Suíte total: **106 testes, 247 assertions — 100% verde**
+  - Merge em `main` via PR #2; release **v0.1.2**
 
 ## Retomando o trabalho (após desligar a máquina)
 

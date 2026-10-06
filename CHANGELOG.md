@@ -7,6 +7,21 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.1.2] — 2026-10-06
+
+### Adicionado
+
+- **Testes unitários em `SecurityKeyTypeTest`**: chaves de parceiro deletadas
+  (`getDeletedAt() != null`) e expiradas (`isExpired() == true`) resolvem para
+  `SecurityKeyType::Anonymous`
+- Helper `apiKey()` estendido para aceitar `deletedAt` e `expired`
+
+### Testes
+
+- Suíte total: **106 testes, 247 assertions** (100% verde)
+
+---
+
 ## [0.1.1] — 2026-10-06
 
 ### Adicionado

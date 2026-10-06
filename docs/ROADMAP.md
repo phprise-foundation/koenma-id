@@ -44,7 +44,7 @@ como `#[ApiResource]`, mantendo os grupos de serialização por método.
 - [x] Remoção dos DTOs `*Input`/`*Output`/`*PatchInput` e das `*Resource` intermediárias
 - [x] Restauração das rotas de `User` (`/contractors/{contractorId}/users` e `/users/{id}`)
 - [x] Providers/Processors ajustados para a entidade direta (`CreateProvider` de `User`, hash de senha no PATCH)
-- [x] Suíte de testes 100% verde (**104 testes, 243 assertions**)
+- [x] Suíte de testes 100% verde (**106 testes, 247 assertions**)
 
 ---
 
