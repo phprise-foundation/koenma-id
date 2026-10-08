@@ -9,6 +9,17 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.1.8] — 2026-10-08
+
+### Corrigido
+
+- **`ApiKeyCollectionProviderTest`** tentava duplicar a classe `final` `ScopedProjectLookup` (erro "Class ScopedProjectLookup is final and cannot be doubled"); agora monta uma instância real de `ScopedProjectLookup` com `ProjectRepository` stubado e `ScopeGuard` real (`SecurityScopeProvider` stubado), seguindo o padrão de `ScopedProjectLookupTest`
+
+### Testes
+
+- `ApiKeyCollectionProviderTest` (unitário): escopo irrestrito, parceiro escopado dono do projeto e projeto de outro parceiro (404)
+- Suíte total: **168 testes, 369 assertions** (verde)
+
 ## [0.1.7] — 2026-10-08
 
 ### Adicionado

@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); segregação por parceiro nas listagens (RFC-002-3) mergeada; suíte 100% verde (165 testes, 366 assertions)
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); segregação por parceiro nas listagens (RFC-002-3) mergeada; correção de teste (RFC-002-3-fix) mergeada; suíte 100% verde (168 testes, 369 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -213,6 +213,11 @@ vai contra o combinado.
   - Master Key e requisições sem chave de parceiro mantêm visão irrestrita (healthcheck preservado)
   - Suíte total: **165 testes, 366 assertions — verde**
   - Merge em `main` via PR #7; release **v0.1.7**
+- [x] **RFC-002-3-fix — Correção de teste do provider de API Keys** (merge em `main`; em testing):
+  - `ApiKeyCollectionProviderTest` reescrito para montar uma instância real de `ScopedProjectLookup` (com `ProjectRepository` stubado e `ScopeGuard` real via `SecurityScopeProvider` stubado), em vez de duplicar a classe `final` — seguindo o padrão de `ScopedProjectLookupTest`
+  - Sem mudanças em código de produção (apenas `tests/` + kanban)
+  - Suíte total: **168 testes, 369 assertions — verde**
+  - Merge em `main` via PR #8; release **v0.1.8**
 
 ## Retomando o trabalho (após desligar a máquina)
 
