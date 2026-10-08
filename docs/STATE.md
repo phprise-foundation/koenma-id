@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()`, exposição do `Partner` e distinção Master Key vs chave de parceiro testados; suíte 100% verde (123 testes, 301 assertions)
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); voter multi-tenant (`MultiTenantAuthorizationVoter`) criado e testado; suíte 100% verde (131 testes, 311 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -202,6 +202,11 @@ vai contra o combinado.
   - `SecurityKeyMasterPartnerTest` (unitário): Master Key resolve para `SecurityKeyType::Master` (escopo master, sem `Partner`); chave de parceiro válida resolve para `SecurityKeyType::Partner` expondo o `Partner`; a Master Key nunca é consultada como chave de parceiro (`findOneByHash` não é chamada); chave de parceiro nunca é resolvida como master; escopos master e de parceiro são mutuamente exclusivos
   - Suíte total: **123 testes, 301 assertions — verde**
   - Merge em `main` via PR #5; release **v0.1.5**
+- [x] **RFC-002-2 — Serviço de autorização multi-tenant (voter)** (merge em `main`; em testing):
+  - `MultiTenantAuthorizationVoter` (`VIEW`/`EDIT`/`DELETE`): Master Key com acesso global; chave de parceiro restrita ao próprio `Partner`; negação retorna `false` (o `AccessDecisionManager` gera o 403)
+  - Interface `SecurityScopeProvider` implementada por `SecurityKeyContext` (`#[AsAlias]`); `SecurityScope` excluído do auto-registro (corrige `lint:container`)
+  - Suíte total: **131 testes, 311 assertions — verde**
+  - Merge em `main` via PR #6; release **v0.1.6**
 
 ## Retomando o trabalho (após desligar a máquina)
 

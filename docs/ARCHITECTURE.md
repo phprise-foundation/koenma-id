@@ -1,6 +1,6 @@
 # Arquitetura — Koenma ID
 
-> **Atualizado em:** 2026-10-06
+> **Atualizado em:** 2026-10-08
 > **Objetivo deste documento:** descrever a estrutura de arquivos e as
 > responsabilidades de cada camada, para que agentes e pessoas encontrem o que
 > precisam **sem abrir arquivos desnecessariamente** (economia de contexto/token)
@@ -159,10 +159,12 @@ Um repositório por entidade. `UserRepository` implementa `PasswordUpgraderInter
 
 | Serviço | Responsabilidade |
 |---|---|
-| `SecurityKeyContext` | Lê o header `X-Security-Key`, resolve a `ApiKey` (hash + não expirada) e devolve o `SecurityScope`; expõe `keyType()`; cacheia por request |
+| `SecurityKeyContext` | Lê o header `X-Security-Key`, resolve a `ApiKey` (hash + não expirada) e devolve o `SecurityScope`; expõe `keyType()`; cacheia por request; implementa `SecurityScopeProvider` |
 | `SecurityScope` | Value object do escopo: `master()`, `partner(Partner)`, `anonymous()`; guarda a entidade `Partner` |
+| `SecurityScopeProvider` | Interface (`scope(): SecurityScope`) implementada por `SecurityKeyContext` via `#[AsAlias]`; desacopla o voter da resolução concreta do escopo |
 | `SecurityKeyType` | enum `Master` / `Partner` / `Anonymous` |
 | `MasterSecurityKey` | Lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals` |
+| `MultiTenantAuthorizationVoter` | `Voter` Symfony (`VIEW`/`EDIT`/`DELETE`): Master Key acessa tudo; chave de parceiro restrita ao próprio `Partner`; negação retorna `false` (o `AccessDecisionManager` gera o 403) |
 
 O header é `X-Security-Key`. A chave em texto puro só é exibida uma vez, na
 criação (`ApiKeyOutput::$securityKey`). O contexto **não lança exceção** quando o

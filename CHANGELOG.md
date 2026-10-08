@@ -7,6 +7,27 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.1.6] — 2026-10-08
+
+### Adicionado
+
+- **Voter de autorização multi-tenant** (`MultiTenantAuthorizationVoter`, atributos `VIEW`/`EDIT`/`DELETE`):
+  - Master Key tem acesso global a qualquer recurso/escopo
+  - chave de parceiro restrita ao `Partner` do próprio escopo (via `Partner` e `Project`)
+  - subject não suportado (`stdClass`) abstém (`ACCESS_ABSTAIN`); acesso negado retorna `false` (o `AccessDecisionManager` gera o 403)
+- **Interface `SecurityScopeProvider`**, implementada por `SecurityKeyContext` via `#[AsAlias]`; `SecurityScope` excluído do auto-registro em `services.yaml`
+
+### Corrigido
+
+- `lint:container` quebrava porque `SecurityScope` (construtor privado) era auto-registrado como serviço; agora é excluído e o voter é um `security.voter` válido
+
+### Testes
+
+- `MultiTenantAuthorizationVoterTest` (unitário, 8 testes) exercitando a API pública `Voter::vote()`
+- Suíte total: **131 testes, 311 assertions** (verde)
+
+---
+
 ## [0.1.5] — 2026-10-08
 
 ### Adicionado
