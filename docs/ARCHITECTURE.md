@@ -165,12 +165,15 @@ Um repositório por entidade. `UserRepository` implementa `PasswordUpgraderInter
 | `SecurityKeyType` | enum `Master` / `Partner` / `Anonymous` |
 | `MasterSecurityKey` | Lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals` |
 | `MultiTenantAuthorizationVoter` | `Voter` Symfony (`VIEW`/`EDIT`/`DELETE`): Master Key acessa tudo; chave de parceiro restrita ao próprio `Partner`; negação retorna `false` (o `AccessDecisionManager` gera o 403) |
+| `ScopeGuard` | Decide a visibilidade de um `Partner` a partir do `SecurityScope` (`scopedPartner()` nulo = irrestrito) |
+| `ScopedPartnerLookup` / `ScopedProjectLookup` / `ScopedContractorLookup` | Resolvem o recurso-pai respeitando o escopo; fora do escopo lançam 404, e são usados pelos `*CollectionProvider` |
 
 O header é `X-Security-Key`. A chave em texto puro só é exibida uma vez, na
 criação (`ApiKeyOutput::$securityKey`). O contexto **não lança exceção** quando o
 header está ausente/inválido: devolve `anonymous()`, e cada endpoint decide se
-exige a chave. A segregação por parceiro será aplicada por um `CustomFilter` que
-consulta este contexto (Master vê tudo).
+exige a chave. A segregação por parceiro nas listagens é aplicada nos
+`*CollectionProvider` via `Scoped*Lookup`: Master Key e escopo anônimo veem tudo; a
+chave de parceiro fica restrita ao próprio `Partner`.
 
 ### 4.5 `State/` — integração com API Platform
 
