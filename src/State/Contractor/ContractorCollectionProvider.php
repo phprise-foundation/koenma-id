@@ -7,9 +7,8 @@ namespace Phprise\KoenmaID\State\Contractor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\Contractor;
-use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Repository\ContractorRepository;
-use Phprise\KoenmaID\Repository\PartnerRepository;
+use Phprise\KoenmaID\Service\Security\ScopedPartnerLookup;
 
 /**
  * @implements ProviderInterface<Contractor>
@@ -18,7 +17,7 @@ final readonly class ContractorCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private ContractorRepository $contractors,
-        private PartnerRepository $partners,
+        private ScopedPartnerLookup $partners,
     ) {
     }
 
@@ -27,11 +26,7 @@ final readonly class ContractorCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        $partner = $this->partners->find($uriVariables['partnerId'] ?? null);
-
-        if (!$partner instanceof Partner) {
-            return [];
-        }
+        $partner = $this->partners->requireVisible($uriVariables['partnerId'] ?? null);
 
         return $this->contractors->findBy(['partner' => $partner, 'deletedAt' => null]);
     }
