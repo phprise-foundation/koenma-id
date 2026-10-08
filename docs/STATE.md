@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); voter multi-tenant (`MultiTenantAuthorizationVoter`) criado e testado; suíte 100% verde (131 testes, 311 assertions)
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); segregação por parceiro nas listagens (RFC-002-3) mergeada; suíte 100% verde (165 testes, 366 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -207,11 +207,12 @@ vai contra o combinado.
   - Interface `SecurityScopeProvider` implementada por `SecurityKeyContext` (`#[AsAlias]`); `SecurityScope` excluído do auto-registro (corrige `lint:container`)
   - Suíte total: **131 testes, 311 assertions — verde**
   - Merge em `main` via PR #6; release **v0.1.6**
-- [ ] **RFC-002-3 — Segregação por parceiro nas listagens** (em reviewing):
+- [x] **RFC-002-3 — Segregação por parceiro nas listagens** (merge em `main`; em testing):
   - Novos `ScopeGuard`, `ScopedPartnerLookup`, `ScopedProjectLookup` e `ScopedContractorLookup` em `Service/Security/`
   - `PartnerCollectionProvider`, `ProjectCollectionProvider`, `ContractorCollectionProvider`, `ApiKeyCollectionProvider` e `UserCollectionProvider` filtram pela chave de parceiro; fora do escopo responde 404
   - Master Key e requisições sem chave de parceiro mantêm visão irrestrita (healthcheck preservado)
   - Suíte total: **165 testes, 366 assertions — verde**
+  - Merge em `main` via PR #7; release **v0.1.7**
 
 ## Retomando o trabalho (após desligar a máquina)
 

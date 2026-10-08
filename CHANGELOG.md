@@ -9,6 +9,8 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-10-08
+
 ### Adicionado
 
 - **Segregação por parceiro nas listagens** (`GET /partners`, `/partners/{partnerId}/projects`, `/partners/{partnerId}/contractors`, `/contractors/{contractorId}/users`, `/projects/{projectId}/api-keys`):
