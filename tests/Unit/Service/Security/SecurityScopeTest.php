@@ -35,6 +35,42 @@ final class SecurityScopeTest extends TestCase
         self::assertSame($partnerId, $scope->partnerId());
     }
 
+    public function testPartnerIdIsDerivedFromTheExposedPartner(): void
+    {
+        $partnerId = PartnerId::generate();
+        $partner = $this->createMock(Partner::class);
+        $partner->expects($this->once())
+            ->method('getId')
+            ->willReturn($partnerId);
+
+        $scope = SecurityScope::partner($partner);
+
+        $resolvedPartnerId = $scope->partnerId();
+
+        self::assertNotNull($resolvedPartnerId);
+        self::assertTrue($resolvedPartnerId->equals($partnerId));
+    }
+
+    public function testDistinctPartnerScopesExposeTheirOwnPartner(): void
+    {
+        $firstId = PartnerId::generate();
+        $first = $this->createStub(Partner::class);
+        $first->method('getId')->willReturn($firstId);
+
+        $secondId = PartnerId::generate();
+        $second = $this->createStub(Partner::class);
+        $second->method('getId')->willReturn($secondId);
+
+        $firstScope = SecurityScope::partner($first);
+        $secondScope = SecurityScope::partner($second);
+
+        self::assertSame($first, $firstScope->getPartner());
+        self::assertSame($second, $secondScope->getPartner());
+        self::assertNotSame($firstScope->getPartner(), $secondScope->getPartner());
+        self::assertFalse($firstScope->partnerId()?->equals($secondId));
+        self::assertFalse($secondScope->partnerId()?->equals($firstId));
+    }
+
     public function testAnonymousScope(): void
     {
         $scope = SecurityScope::anonymous();

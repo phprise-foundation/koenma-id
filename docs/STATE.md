@@ -188,6 +188,10 @@ vai contra o combinado.
   - Helper `apiKey()` estendido para aceitar `deletedAt` e `expired`
   - Suíte total: **106 testes, 247 assertions — 100% verde**
   - Merge em `main` via PR #2; release **v0.1.2**
+- [x] **RFC-002-1-3-2 — Testes da exposição do `Partner` no `SecurityScope`** (implementada):
+  - `SecurityScopeTest` verifica que `partnerId()` deriva de `getPartner()?->getId()`
+  - Escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
+  - Suíte total do escopo: **108 testes, 255 assertions — verde**
 
 ## Retomando o trabalho (após desligar a máquina)
 
