@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phprise\KoenmaID\Tests\Integration\Service;
 
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
 use Phprise\KoenmaID\Service\Security\SecurityKeyType;
 use Phprise\KoenmaID\Tests\Factory\TestDataFactory;
@@ -41,6 +42,23 @@ final class SecurityKeyContextTest extends KernelTestCase
         self::assertFalse($scope->isMaster());
         self::assertFalse($scope->isAnonymous());
         self::assertSame($partner->getId()->toString(), $scope->partnerId()?->toString());
+    }
+
+    public function testExposesThePersistedPartnerEntity(): void
+    {
+        $partner = $this->factory()->createPartner('ctx-partner');
+        $project = $this->factory()->createProject($partner, 'ctx-partner');
+        $this->factory()->createApiKey($project, 'sk_PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP', 'ctx-partner');
+
+        $this->pushRequest('sk_PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
+
+        $scope = $this->context()->scope();
+        $exposed = $scope->getPartner();
+
+        self::assertInstanceOf(Partner::class, $exposed);
+        self::assertSame($partner->getId()->toString(), $exposed->getId()?->toString());
+        self::assertSame($partner->getName(), $exposed->getName());
+        self::assertSame(SecurityKeyType::Partner, $this->context()->keyType());
     }
 
     public function testResolvesAnonymousForUnknownKey(): void
