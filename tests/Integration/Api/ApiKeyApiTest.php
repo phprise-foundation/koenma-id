@@ -167,7 +167,7 @@ final class ApiKeyApiTest extends WebTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
-    public function testDeleteRejectsSecurityKeyOfAnotherPartner(): void
+    public function testDeleteHidesSecurityKeyOfAnotherPartner(): void
     {
         $project = $this->seedProjectWithKey('key-delete-own');
         $this->seedProjectWithKey('key-delete-other');
@@ -177,7 +177,7 @@ final class ApiKeyApiTest extends WebTestCase
             'HTTP_X_SECURITY_KEY' => $this->securityKeyFor('key-delete-other'),
         ]);
 
-        self::assertResponseStatusCodeSame(401);
+        self::assertResponseStatusCodeSame(404);
     }
 
     public function testReturnsNotFoundForUnknownApiKey(): void

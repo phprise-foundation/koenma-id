@@ -14,9 +14,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProcessorInterface<Contractor, Contractor>
+ * @implements ProcessorInterface<Contractor, null>
  */
-final readonly class ContractorPatchProcessor implements ProcessorInterface
+final readonly class ContractorDeleteProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -24,7 +24,7 @@ final readonly class ContractorPatchProcessor implements ProcessorInterface
     ) {
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Contractor
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
         if (!$data instanceof Contractor) {
             throw new BadRequestHttpException('Invalid payload.');
@@ -32,12 +32,15 @@ final readonly class ContractorPatchProcessor implements ProcessorInterface
 
         $partner = $data->getPartner();
 
-        if (!$partner instanceof Partner || !$this->scopeGuard->allows($partner)) {
+        if (!$partner instanceof Partner) {
             throw new NotFoundHttpException('Contractor not found.');
         }
 
+        $this->scopeGuard->assertCanWrite($partner, 'Contractor not found.');
+
+        $data->delete();
         $this->entityManager->flush();
 
-        return $data;
+        return null;
     }
 }

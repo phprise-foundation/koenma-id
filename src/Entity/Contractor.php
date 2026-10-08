@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -15,6 +16,7 @@ use Phprise\KoenmaID\Doctrine\IdGenerator\PrefixedIdGenerator;
 use Phprise\KoenmaID\Doctrine\Type\ContractorIdType;
 use Phprise\KoenmaID\Repository\ContractorRepository;
 use Phprise\KoenmaID\State\Contractor\ContractorCollectionProvider;
+use Phprise\KoenmaID\State\Contractor\ContractorDeleteProcessor;
 use Phprise\KoenmaID\State\Contractor\ContractorItemProvider;
 use Phprise\KoenmaID\State\Contractor\ContractorPatchProcessor;
 use Phprise\KoenmaID\State\Contractor\ContractorPostProcessor;
@@ -62,6 +64,12 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['contractor:patch']],
             validationContext: ['groups' => ['contractor:patch']],
             normalizationContext: ['groups' => ['contractor:get']],
+        ),
+        new Delete(
+            openapi: new OpenApiOperation(summary: 'Delete a contractor', description: 'Soft-deletes a contractor. The request must carry the master key or the security key of the owning partner.'),
+            uriTemplate: '/contractors/{id}',
+            provider: ContractorItemProvider::class,
+            processor: ContractorDeleteProcessor::class,
         ),
     ],
 )]

@@ -12,9 +12,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * @implements ProcessorInterface<Partner, Partner>
+ * @implements ProcessorInterface<Partner, null>
  */
-final readonly class PartnerPatchProcessor implements ProcessorInterface
+final readonly class PartnerDeleteProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -22,15 +22,17 @@ final readonly class PartnerPatchProcessor implements ProcessorInterface
     ) {
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Partner
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
         if (!$data instanceof Partner) {
             throw new BadRequestHttpException('Invalid payload.');
         }
 
         $this->scopeGuard->assertCanWrite($data, 'Partner not found.');
+
+        $data->delete();
         $this->entityManager->flush();
 
-        return $data;
+        return null;
     }
 }

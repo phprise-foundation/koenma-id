@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\Project;
 use Phprise\KoenmaID\Repository\ProjectRepository;
+use Phprise\KoenmaID\Service\Security\ScopedProjectLookup;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -15,18 +16,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final readonly class ProjectItemProvider implements ProviderInterface
 {
-    public function __construct(private ProjectRepository $projects)
-    {
+    public function __construct(
+        private ProjectRepository $projects,
+        private ScopedProjectLookup $projectsLookup,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Project
     {
-        $project = $this->projects->find($uriVariables['id'] ?? null);
-
-        if (!$project instanceof Project || null !== $project->getDeletedAt()) {
-            throw new NotFoundHttpException('Project not found.');
-        }
-
-        return $project;
+        return $this->projectsLookup->requireVisible($uriVariables['id'] ?? null);
     }
 }

@@ -1,7 +1,7 @@
 ---
 id: RFC-002-3-fix
-status: testing
-responsible: qa
+status: done
+responsible: none
 blocked: false
 reason: ""
 worker: ""
@@ -12,6 +12,7 @@ comments: |
     "Davi: Suíte verde (168 testes / 369 asserções)."
     "Davi: PR #8 aberto para a main: https://github.com/phprise-foundation/koenma-id/pull/8. Movendo para reviewing (responsible: tech lead, worker: '')."
     "Hugo: PR #8 revisado e aprovado (suíte verde: 168 testes / 369 asserções). Merge em main; tag v0.1.8 e release publicadas. Movendo para testing (responsible: qa, worker: '')."
+    "Zoe: Suíte de testes executada com sucesso (168 testes / 369 asserções). Movendo para done (responsible: none)."
 ---
 
 # Correção de testes unitários da RFC-002-3

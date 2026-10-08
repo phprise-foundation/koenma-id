@@ -6,6 +6,7 @@ namespace Phprise\KoenmaID\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -17,6 +18,7 @@ use Phprise\KoenmaID\Doctrine\Type\UserIdType;
 use Phprise\KoenmaID\Repository\UserRepository;
 use Phprise\KoenmaID\State\User\CreateProvider;
 use Phprise\KoenmaID\State\User\UserCollectionProvider;
+use Phprise\KoenmaID\State\User\UserDeleteProcessor;
 use Phprise\KoenmaID\State\User\UserItemProvider;
 use Phprise\KoenmaID\State\User\UserPatchProcessor;
 use Phprise\KoenmaID\State\User\UserPostProcessor;
@@ -67,6 +69,12 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['user:patch']],
             validationContext: ['groups' => ['user:patch']],
             normalizationContext: ['groups' => ['user:get']],
+        ),
+        new Delete(
+            openapi: new OpenApiOperation(summary: 'Delete a user', description: 'Soft-deletes a user. The request must carry the master key or the security key of the owning partner.'),
+            uriTemplate: '/users/{id}',
+            provider: UserItemProvider::class,
+            processor: UserDeleteProcessor::class,
         ),
     ],
 )]

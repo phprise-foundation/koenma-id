@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Phprise\KoenmaID\State\Contractor;
+namespace Phprise\KoenmaID\State\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Entity\Partner;
+use Phprise\KoenmaID\Entity\User;
 use Phprise\KoenmaID\Service\Security\ScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProcessorInterface<Contractor, Contractor>
+ * @implements ProcessorInterface<User, null>
  */
-final readonly class ContractorPatchProcessor implements ProcessorInterface
+final readonly class UserDeleteProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -24,20 +24,23 @@ final readonly class ContractorPatchProcessor implements ProcessorInterface
     ) {
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Contractor
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
-        if (!$data instanceof Contractor) {
+        if (!$data instanceof User) {
             throw new BadRequestHttpException('Invalid payload.');
         }
 
-        $partner = $data->getPartner();
+        $partner = $data->getContractor()?->getPartner();
 
-        if (!$partner instanceof Partner || !$this->scopeGuard->allows($partner)) {
-            throw new NotFoundHttpException('Contractor not found.');
+        if (!$partner instanceof Partner) {
+            throw new NotFoundHttpException('User not found.');
         }
 
+        $this->scopeGuard->assertCanWrite($partner, 'User not found.');
+
+        $data->delete();
         $this->entityManager->flush();
 
-        return $data;
+        return null;
     }
 }

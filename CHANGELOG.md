@@ -9,6 +9,23 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Adicionado
+
+- **Segregação por parceiro na consulta, atualização e exclusão** (RFC-002-4/5/6):
+  - `GET /partners/{id}` passa a usar `ScopedPartnerLookup`: a chave de parceiro vê só o próprio `Partner`; fora do escopo retorna 404
+  - `PATCH` de Partner/Project/Contractor/ApiKey/User respeita o escopo: a chave de parceiro atualiza apenas recursos do próprio `Partner` (404 fora dele); `PATCH /partners/{id}` passa a aceitar a chave do próprio parceiro (antes exigia Master Key)
+  - Novas operações `DELETE` (soft-delete) para `Partner`, `Project`, `Contractor` e `User`: a Master Key exclui qualquer recurso e a chave de parceiro apenas os do próprio `Partner` (401 sem chave, 404 fora do escopo)
+  - `DELETE /api-keys/{id}` alinhado a 403/404: esconder a API Key de outro parceiro agora retorna 404 (antes 401)
+  - `ScopeGuard::assertCanWrite()` centraliza a decisão de escrita (Master Key, chave do próprio parceiro ou anônimo)
+- **Correções de robustez** nos `*ItemProvider`: `ContractorItemProvider` passa a usar `ScopedContractorLookup` e `ApiKeyItemProvider` valida `Project` nulo, eliminando riscos de NPE em `getPartner()->getId()` / `getProject()->getId()`
+
+### Testes
+
+- `ScopeGuardTest`: 4 testes novos para `assertCanWrite()` (Master, próprio parceiro, anônimo 401, outro parceiro 404)
+- `PartnerSegregationMutationTest` (funcional): isolamento multi-tenant de consulta, atualização e exclusão para Partner, Project, Contractor, ApiKey e User
+- `ApiKeyApiTest`: a deleção de API Key de outro parceiro passa a esperar 404
+- Suíte total: **194 testes, 433 assertions** (verde)
+
 ## [0.1.8] — 2026-10-08
 
 ### Corrigido
