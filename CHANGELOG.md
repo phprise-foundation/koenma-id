@@ -7,6 +7,20 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.1.3] — 2026-10-08
+
+### Adicionado
+
+- **Testes da exposição do `Partner` no `SecurityScope`** (`SecurityScopeTest`):
+  - `partnerId()` é derivado de `getPartner()?->getId()` (delegação verificada ao `Partner` exposto)
+  - escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
+
+### Testes
+
+- Suíte total: **108 testes, 255 assertions** (100% verde)
+
+---
+
 ## [0.1.2] — 2026-10-06
 
 ### Adicionado
@@ -42,11 +56,6 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 
 ### Adicionado
-
-- **Testes da exposição do `Partner` no `SecurityScope`** (`SecurityScopeTest`):
-  - `partnerId()` é derivado de `getPartner()?->getId()` (delegação verificada ao `Partner` exposto)
-  - escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
-  - suíte total do escopo: **108 testes, 255 assertions** (verde)
 
 - **Fase 1.6 — Refatoração DTO → Entidade**:
   - Entidades `Partner`, `Project`, `ApiKey`, `Contractor` e `User` expostas diretamente como `#[ApiResource]` + `#[Groups]`

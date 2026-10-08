@@ -1,8 +1,8 @@
 # Estado do Projeto — Koenma ID
 
-> **Atualizado em:** 2026-10-06
+> **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()` testado; suíte 100% verde
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()` e exposição do `Partner` testados; suíte 100% verde (108 testes, 255 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -188,10 +188,11 @@ vai contra o combinado.
   - Helper `apiKey()` estendido para aceitar `deletedAt` e `expired`
   - Suíte total: **106 testes, 247 assertions — 100% verde**
   - Merge em `main` via PR #2; release **v0.1.2**
-- [x] **RFC-002-1-3-2 — Testes da exposição do `Partner` no `SecurityScope`** (implementada):
+- [x] **RFC-002-1-3-2 — Testes da exposição do `Partner` no `SecurityScope`** (merge em `main`; em testing):
   - `SecurityScopeTest` verifica que `partnerId()` deriva de `getPartner()?->getId()`
   - Escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
-  - Suíte total do escopo: **108 testes, 255 assertions — verde**
+  - Suíte total: **108 testes, 255 assertions — 100% verde**
+  - Merge em `main` via PR #3; release **v0.1.3**
 
 ## Retomando o trabalho (após desligar a máquina)
 
