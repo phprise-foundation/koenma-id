@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()` e exposição do `Partner` testados; suíte 100% verde (108 testes, 255 assertions)
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()`, exposição do `Partner` e distinção Master Key vs chave de parceiro testados; suíte 100% verde (118 testes, 283 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -193,6 +193,11 @@ vai contra o combinado.
   - Escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
   - Suíte total: **108 testes, 255 assertions — 100% verde**
   - Merge em `main` via PR #3; release **v0.1.3**
+- [x] **RFC-002-1-3-1 — Testes da distinção Master Key vs chave de parceiro no `SecurityKeyContext`** (merge em `main`; em testing):
+  - `SecurityKeyContextPartnerTest` (unitário): escopo de parceiro expõe o `Partner`; Master, anônimo, desconhecida, deletada e expirada não expõem; escopo cacheado mantém o mesmo `Partner`; contextos distintos não vazam `Partner`
+  - `SecurityKeyContextTest` (integração): a entidade `Partner` persistida é exposta por `scope()->getPartner()`
+  - Suíte total: **118 testes, 283 assertions — verde**
+  - Merge em `main` via PR #4; release **v0.1.4**
 
 ## Retomando o trabalho (após desligar a máquina)
 

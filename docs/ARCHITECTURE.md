@@ -221,7 +221,7 @@ tests/
 ├── Unit/
 │   ├── Entity/                          # ContractorUnitTest, ProjectUnitTest
 │   ├── Service/                         # ApiKey, Contractor, Security, User
-│   │   └── Security/SecurityKeyTypeTest.php, SecurityScopeTest.php
+│   │   └── Security/SecurityKeyTypeTest.php, SecurityScopeTest.php, SecurityKeyContextPartnerTest.php
 │   └── ValueObject/PrefixedIdTest.php
 ├── Integration/
 │   ├── Api/                             # HTTP (WebTestCase)
@@ -231,7 +231,7 @@ tests/
 │   │   ├── ContractorApiTest.php
 │   │   └── UserApiTest.php
 │   └── Service/
-│       ├── SecurityKeyContextTest.php   # keyType() (KernelTestCase)
+│       ├── SecurityKeyContextTest.php   # keyType() e exposição do Partner (KernelTestCase)
 │       └── UserRegistrarTest.php
 └── EndToEnd/TokenFlowTest.php           # ciclo completo de tokens
 ```

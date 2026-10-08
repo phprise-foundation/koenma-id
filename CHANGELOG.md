@@ -7,6 +7,25 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.1.4] — 2026-10-08
+
+### Adicionado
+
+- **Testes da distinção Master Key vs chave de parceiro e da exposição do
+  `Partner` no `SecurityKeyContext`** (`SecurityKeyContextPartnerTest`, unitário):
+  - escopo de parceiro expõe a entidade `Partner` e seus dados (`getPartner()`)
+  - Master, anônimo, chave desconhecida, deletada e expirada **não** expõem `Partner`
+  - o escopo resolvido é cacheado e mantém o mesmo `Partner`
+  - contextos distintos expõem o próprio `Partner`, sem vazamento entre si
+- **Teste de integração** em `SecurityKeyContextTest`: a entidade `Partner`
+  persistida é exposta por `scope()->getPartner()`
+
+### Testes
+
+- Suíte total: **118 testes, 283 assertions** (verde)
+
+---
+
 ## [0.1.3] — 2026-10-08
 
 ### Adicionado
