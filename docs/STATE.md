@@ -193,11 +193,15 @@ vai contra o combinado.
   - Escopos de parceiros distintos expõem o próprio `Partner`, sem vazamento entre si
   - Suíte total: **108 testes, 255 assertions — 100% verde**
   - Merge em `main` via PR #3; release **v0.1.3**
-- [x] **RFC-002-1-3-1 — Testes da distinção Master Key vs chave de parceiro no `SecurityKeyContext`** (merge em `main`; em testing):
+- [x] **RFC-002-1-3-3 — Testes da exposição do `Partner` no `SecurityKeyContext`** (merge em `main`; em testing):
   - `SecurityKeyContextPartnerTest` (unitário): escopo de parceiro expõe o `Partner`; Master, anônimo, desconhecida, deletada e expirada não expõem; escopo cacheado mantém o mesmo `Partner`; contextos distintos não vazam `Partner`
   - `SecurityKeyContextTest` (integração): a entidade `Partner` persistida é exposta por `scope()->getPartner()`
   - Suíte total: **118 testes, 283 assertions — verde**
   - Merge em `main` via PR #4; release **v0.1.4**
+- [x] **RFC-002-1-3-1 — Testes da distinção Master Key vs chave de parceiro no `SecurityKeyContext`** (PR #5 aberto; em reviewing):
+  - `SecurityKeyMasterPartnerTest` (unitário): Master Key resolve para `SecurityKeyType::Master` (escopo master, sem `Partner`); chave de parceiro válida resolve para `SecurityKeyType::Partner` expondo o `Partner`; a Master Key nunca é consultada como chave de parceiro (`findOneByHash` não é chamada); chave de parceiro nunca é resolvida como master; escopos master e de parceiro são mutuamente exclusivos
+  - Branch `feat/security-key-master-partner-tests`; PR #5
+  - Suíte total: **123 testes, 301 assertions — verde**
 
 ## Retomando o trabalho (após desligar a máquina)
 

@@ -7,12 +7,28 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [Unreleased]
+
+### Adicionado
+
+- **Testes da distinção entre Master Key e chave de parceiro** (`SecurityKeyMasterPartnerTest`, unitário):
+  - Master Key resolve para `SecurityKeyType::Master`, com escopo master e sem `Partner`
+  - chave de parceiro válida resolve para `SecurityKeyType::Partner`, expondo o `Partner`
+  - a Master Key nunca é consultada como chave de parceiro; a chave de parceiro nunca é resolvida como master
+  - escopos master e de parceiro são mutuamente exclusivos
+
+### Testes
+
+- Suíte total: **123 testes, 301 assertions** (verde)
+
+---
+
 ## [0.1.4] — 2026-10-08
 
 ### Adicionado
 
-- **Testes da distinção Master Key vs chave de parceiro e da exposição do
-  `Partner` no `SecurityKeyContext`** (`SecurityKeyContextPartnerTest`, unitário):
+- **Testes da exposição do `Partner` no `SecurityKeyContext`**
+  (`SecurityKeyContextPartnerTest`, unitário):
   - escopo de parceiro expõe a entidade `Partner` e seus dados (`getPartner()`)
   - Master, anônimo, chave desconhecida, deletada e expirada **não** expõem `Partner`
   - o escopo resolvido é cacheado e mantém o mesmo `Partner`
