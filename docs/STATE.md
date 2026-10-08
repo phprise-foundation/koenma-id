@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-08
 > **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()`, exposição do `Partner` e distinção Master Key vs chave de parceiro testados; suíte 100% verde (118 testes, 283 assertions)
+> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); `keyType()`, exposição do `Partner` e distinção Master Key vs chave de parceiro testados; suíte 100% verde (123 testes, 301 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -198,10 +198,10 @@ vai contra o combinado.
   - `SecurityKeyContextTest` (integração): a entidade `Partner` persistida é exposta por `scope()->getPartner()`
   - Suíte total: **118 testes, 283 assertions — verde**
   - Merge em `main` via PR #4; release **v0.1.4**
-- [x] **RFC-002-1-3-1 — Testes da distinção Master Key vs chave de parceiro no `SecurityKeyContext`** (PR #5 aberto; em reviewing):
+- [x] **RFC-002-1-3-1 — Testes da distinção Master Key vs chave de parceiro no `SecurityKeyContext`** (merge em `main`; em testing):
   - `SecurityKeyMasterPartnerTest` (unitário): Master Key resolve para `SecurityKeyType::Master` (escopo master, sem `Partner`); chave de parceiro válida resolve para `SecurityKeyType::Partner` expondo o `Partner`; a Master Key nunca é consultada como chave de parceiro (`findOneByHash` não é chamada); chave de parceiro nunca é resolvida como master; escopos master e de parceiro são mutuamente exclusivos
-  - Branch `feat/security-key-master-partner-tests`; PR #5
   - Suíte total: **123 testes, 301 assertions — verde**
+  - Merge em `main` via PR #5; release **v0.1.5**
 
 ## Retomando o trabalho (após desligar a máquina)
 
