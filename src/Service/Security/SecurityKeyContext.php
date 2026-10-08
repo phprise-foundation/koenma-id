@@ -7,10 +7,12 @@ namespace Phprise\KoenmaID\Service\Security;
 use Phprise\KoenmaID\Entity\ApiKey;
 use Phprise\KoenmaID\Repository\ApiKeyRepository;
 use Phprise\KoenmaID\ValueObject\SecurityKey;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-final class SecurityKeyContext
+#[AsAlias(SecurityScopeProvider::class)]
+final class SecurityKeyContext implements SecurityScopeProvider
 {
     public const string HEADER = 'X-Security-Key';
 
