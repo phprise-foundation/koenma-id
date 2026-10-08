@@ -7,6 +7,21 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [Unreleased]
+
+### Adicionado
+
+- **Segregação por parceiro nas listagens** (`GET /partners`, `/partners/{partnerId}/projects`, `/partners/{partnerId}/contractors`, `/contractors/{contractorId}/users`, `/projects/{projectId}/api-keys`):
+  - chave de parceiro vê apenas os recursos do próprio `Partner`; ao informar o pai de outro parceiro a resposta é 404
+  - Master Key e requisições sem chave de parceiro mantêm a visão irrestrita (compatível com o healthcheck atual)
+- **Serviços de escopo** `ScopeGuard`, `ScopedPartnerLookup`, `ScopedProjectLookup` e `ScopedContractorLookup`, que centralizam a decisão de visibilidade usada pelos `*CollectionProvider`
+
+### Testes
+
+- `ScopeGuardTest`, `ScopedPartnerLookupTest`, `ScopedProjectLookupTest`, `ScopedContractorLookupTest` (unitários)
+- `PartnerSegregationListingTest` (funcional): Master Key x chave de parceiro x 404 fora do escopo em todas as listagens
+- Suíte total: **165 testes, 366 assertions** (verde)
+
 ## [0.1.6] — 2026-10-08
 
 ### Adicionado

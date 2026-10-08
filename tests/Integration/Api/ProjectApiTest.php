@@ -117,6 +117,50 @@ final class ProjectApiTest extends WebTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    public function testListsApiKeysOfProject(): void
+    {
+        $partner = $this->factory()->createPartner('proj-key-list');
+        $project = $this->factory()->createProject($partner, 'key-list');
+        $this->factory()->createApiKey($project, 'plain-key-a', 'list-a');
+        $this->factory()->createApiKey($project, 'plain-key-b', 'list-b');
+
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(2, $payload);
+    }
+
+    public function testListsOnlyApiKeysOfGivenProject(): void
+    {
+        $partner = $this->factory()->createPartner('proj-key-scope');
+        $project = $this->factory()->createProject($partner, 'scope-a');
+        $other = $this->factory()->createProject($partner, 'scope-b');
+        $this->factory()->createApiKey($project, 'plain-key-scope-a', 'scope-a');
+        $this->factory()->createApiKey($other, 'plain-key-scope-b', 'scope-b');
+
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(1, $payload);
+        self::assertSame($project->getId()->toString(), $payload[0]['projectId']);
+    }
+
+    public function testListsOnlyNonExpiredApiKeys(): void
+    {
+        $partner = $this->factory()->createPartner('proj-key-expired');
+        $project = $this->factory()->createProject($partner, 'key-expired');
+        $this->factory()->createApiKey($project, 'plain-key-active', 'active');
+        $this->factory()->createApiKey($project, 'plain-key-expired', 'expired', new \DateTimeImmutable('-1 day'));
+
+        $this->client->request('GET', '/projects/'.$project->getId()->toString().'/api-keys');
+
+        self::assertResponseIsSuccessful();
+        $payload = $this->decodeCollection();
+        self::assertCount(1, $payload);
+    }
+
     private function factory(): TestDataFactory
     {
         return static::getContainer()->get(TestDataFactory::class);

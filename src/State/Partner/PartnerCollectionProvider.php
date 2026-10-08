@@ -7,14 +7,14 @@ namespace Phprise\KoenmaID\State\Partner;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\Partner;
-use Phprise\KoenmaID\Repository\PartnerRepository;
+use Phprise\KoenmaID\Service\Security\ScopedPartnerLookup;
 
 /**
  * @implements ProviderInterface<Partner>
  */
 final readonly class PartnerCollectionProvider implements ProviderInterface
 {
-    public function __construct(private PartnerRepository $partners)
+    public function __construct(private ScopedPartnerLookup $lookup)
     {
     }
 
@@ -23,6 +23,6 @@ final readonly class PartnerCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        return $this->partners->findBy(['deletedAt' => null]);
+        return $this->lookup->visible();
     }
 }

@@ -254,8 +254,9 @@ symfony serve -d
   - **Master Key** (`MASTER_SECURITY_KEY`): criar/editar Partners.
   - **Chave de Partner**: criar User, criar/remover API Key, `/token/create` e
     `/token/verify` (sempre restrita ao próprio Partner).
-  A segregação completa por parceiro em todos os endpoints será aplicada na
-  próxima fase.
+  Nas listagens (`GET`), a chave de parceiro vê apenas o próprio escopo (404
+  fora dele); a Master Key e as requisições sem chave de parceiro mantêm a visão
+  irrestrita. A segregação nos demais endpoints será aplicada nas próximas fases.
 
 ### Content-Type nos exemplos
 
@@ -753,7 +754,7 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/partners` | Lista todos os partners |
+| `GET` | `/partners` | Lista os partners (chave de parceiro vê só o próprio) |
 | `GET` | `/partners/{id}` | Retorna um partner |
 | `POST` | `/partners` | Cria um partner (exige **Master Key**) |
 | `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key**) |
@@ -762,7 +763,7 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/partners/{partnerId}/projects` | Lista os projects de um partner |
+| `GET` | `/partners/{partnerId}/projects` | Lista os projects de um partner (chave de parceiro restrita ao próprio) |
 | `GET` | `/projects/{id}` | Retorna um project |
 | `POST` | `/partners/{partnerId}/projects` | Cria um project |
 | `PATCH` | `/projects/{id}` | Atualiza nome ou descrição |
@@ -771,7 +772,7 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/projects/{projectId}/api-keys` | Lista as API Keys **não expiradas** de um project |
+| `GET` | `/projects/{projectId}/api-keys` | Lista as API Keys **não expiradas** de um project (chave de parceiro restrita ao próprio) |
 | `GET` | `/api-keys/{id}` | Retorna uma API Key (sem a chave em texto puro) |
 | `POST` | `/projects/{projectId}/api-keys` | Cria uma API Key (**exibe a chave uma única vez**) |
 | `PATCH` | `/api-keys/{id}` | Atualiza o nome |
@@ -781,7 +782,7 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/partners/{partnerId}/contractors` | Lista os contractors de um partner |
+| `GET` | `/partners/{partnerId}/contractors` | Lista os contractors de um partner (chave de parceiro restrita ao próprio) |
 | `GET` | `/contractors/{id}` | Retorna um contractor |
 | `POST` | `/partners/{partnerId}/contractors` | Cria um contractor |
 | `PATCH` | `/contractors/{id}` | Atualiza o nome |
@@ -790,7 +791,7 @@ curl -s -X POST "$BASE/token/revoke" \
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/contractors/{contractorId}/users` | Lista os users de um contractor |
+| `GET` | `/contractors/{contractorId}/users` | Lista os users de um contractor (chave de parceiro restrita ao próprio) |
 | `GET` | `/users/{id}` | Retorna um user |
 | `POST` | `/contractors/{contractorId}/users` | Cria um user (exige `X-Security-Key`) |
 | `PATCH` | `/users/{id}` | Atualiza username, email ou password |
