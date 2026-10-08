@@ -6,9 +6,13 @@ namespace Phprise\KoenmaID\State\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use Phprise\KoenmaID\Entity\Contractor;
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Entity\User;
+use Phprise\KoenmaID\Service\Security\ScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
@@ -19,6 +23,7 @@ final readonly class UserPatchProcessor implements ProcessorInterface
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
+        private ScopeGuard $scopeGuard,
     ) {
     }
 
@@ -26,6 +31,13 @@ final readonly class UserPatchProcessor implements ProcessorInterface
     {
         if (!$data instanceof User) {
             throw new BadRequestHttpException('Invalid payload.');
+        }
+
+        $contractor = $data->getContractor();
+        $partner = $contractor?->getPartner();
+
+        if (!$contractor instanceof Contractor || !$partner instanceof Partner || !$this->scopeGuard->allows($partner)) {
+            throw new NotFoundHttpException('User not found.');
         }
 
         $previous = $context['previous_data'] ?? null;

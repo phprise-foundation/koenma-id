@@ -247,16 +247,18 @@ symfony serve -d
 - **Formatos de saída**: JSON-LD, JSON, XML, CSV.
 - **Formatos de entrada**: JSON e JSON-LD.
 - **PATCH**: `application/merge-patch+json` ou `application/json`.
-- **Não usamos PUT**: apenas `POST`, `GET` e `PATCH`.
+- **Não usamos PUT**: apenas `POST`, `GET`, `PATCH` e `DELETE`.
 - **Autenticação**: o firewall `main` está com `security: false`. As operações
   sensíveis exigem o cabeçalho **`X-Security-Key`**, validado pelo
   `SecurityKeyContext`:
-  - **Master Key** (`MASTER_SECURITY_KEY`): criar/editar Partners.
-  - **Chave de Partner**: criar User, criar/remover API Key, `/token/create` e
-    `/token/verify` (sempre restrita ao próprio Partner).
-  Nas listagens (`GET`), a chave de parceiro vê apenas o próprio escopo (404
-  fora dele); a Master Key e as requisições sem chave de parceiro mantêm a visão
-  irrestrita. A segregação nos demais endpoints será aplicada nas próximas fases.
+  - **Master Key** (`MASTER_SECURITY_KEY`): criar, editar e excluir qualquer
+    Partner/Project/Contractor/ApiKey/User.
+  - **Chave de Partner**: criar/editar/excluir recursos do próprio Partner, além
+    de `/token/create` e `/token/verify`.
+  A segregação vale para listagem, consulta, atualização e exclusão: a chave de
+  parceiro vê e altera apenas o próprio escopo (404 fora dele); a Master Key
+  mantém a visão irrestrita. Exclusões (`DELETE`) exigem a Master Key ou a chave
+  do próprio Partner.
 
 ### Content-Type nos exemplos
 
@@ -757,7 +759,8 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/partners` | Lista os partners (chave de parceiro vê só o próprio) |
 | `GET` | `/partners/{id}` | Retorna um partner |
 | `POST` | `/partners` | Cria um partner (exige **Master Key**) |
-| `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key**) |
+| `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key** ou a chave do próprio partner) |
+| `DELETE` | `/partners/{id}` | Remove (soft-delete) um partner (exige **Master Key** ou a chave do próprio partner) |
 
 ### Projects
 
@@ -766,7 +769,8 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/partners/{partnerId}/projects` | Lista os projects de um partner (chave de parceiro restrita ao próprio) |
 | `GET` | `/projects/{id}` | Retorna um project |
 | `POST` | `/partners/{partnerId}/projects` | Cria um project |
-| `PATCH` | `/projects/{id}` | Atualiza nome ou descrição |
+| `PATCH` | `/projects/{id}` | Atualiza nome ou descrição (chave de parceiro restrita ao próprio) |
+| `DELETE` | `/projects/{id}` | Remove (soft-delete) um project (exige **Master Key** ou a chave do próprio partner) |
 
 ### API Keys
 
@@ -775,7 +779,7 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/projects/{projectId}/api-keys` | Lista as API Keys **não expiradas** de um project (chave de parceiro restrita ao próprio) |
 | `GET` | `/api-keys/{id}` | Retorna uma API Key (sem a chave em texto puro) |
 | `POST` | `/projects/{projectId}/api-keys` | Cria uma API Key (**exibe a chave uma única vez**) |
-| `PATCH` | `/api-keys/{id}` | Atualiza o nome |
+| `PATCH` | `/api-keys/{id}` | Atualiza o nome (chave de parceiro restrita ao próprio) |
 | `DELETE` | `/api-keys/{id}` | Remove (soft-delete) uma API Key (exige `X-Security-Key`) |
 
 ### Contractors
@@ -785,7 +789,8 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/partners/{partnerId}/contractors` | Lista os contractors de um partner (chave de parceiro restrita ao próprio) |
 | `GET` | `/contractors/{id}` | Retorna um contractor |
 | `POST` | `/partners/{partnerId}/contractors` | Cria um contractor |
-| `PATCH` | `/contractors/{id}` | Atualiza o nome |
+| `PATCH` | `/contractors/{id}` | Atualiza o nome (chave de parceiro restrita ao próprio) |
+| `DELETE` | `/contractors/{id}` | Remove (soft-delete) um contractor (exige **Master Key** ou a chave do próprio partner) |
 
 ### Users
 
@@ -794,7 +799,8 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/contractors/{contractorId}/users` | Lista os users de um contractor (chave de parceiro restrita ao próprio) |
 | `GET` | `/users/{id}` | Retorna um user |
 | `POST` | `/contractors/{contractorId}/users` | Cria um user (exige `X-Security-Key`) |
-| `PATCH` | `/users/{id}` | Atualiza username, email ou password |
+| `PATCH` | `/users/{id}` | Atualiza username, email ou password (chave de parceiro restrita ao próprio) |
+| `DELETE` | `/users/{id}` | Remove (soft-delete) um user (exige **Master Key** ou a chave do próprio partner) |
 
 ### Tokens
 

@@ -7,6 +7,7 @@ namespace Phprise\KoenmaID\State\ApiKey;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\ApiKey;
+use Phprise\KoenmaID\Entity\Project;
 use Phprise\KoenmaID\Repository\ApiKeyRepository;
 use Phprise\KoenmaID\Service\Security\ScopedProjectLookup;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -30,7 +31,13 @@ final readonly class ApiKeyItemProvider implements ProviderInterface
             throw new NotFoundHttpException('ApiKey not found.');
         }
 
-        $this->projects->requireVisible($apiKey->getProject()->getId());
+        $project = $apiKey->getProject();
+
+        if (!$project instanceof Project) {
+            throw new NotFoundHttpException('ApiKey not found.');
+        }
+
+        $this->projects->requireVisible($project->getId());
 
         return $apiKey;
     }

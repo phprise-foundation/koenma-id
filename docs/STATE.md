@@ -1,8 +1,8 @@
 # Estado do Projeto — Koenma ID
 
 > **Atualizado em:** 2026-10-08
-> **Branch:** `main`
-> **Fase atual:** Fase 1.6 — Refatoração DTO → Entidade (concluída); segregação por parceiro nas listagens (RFC-002-3) mergeada; correção de teste (RFC-002-3-fix) mergeada; suíte 100% verde (168 testes, 369 assertions)
+> **Branch:** `feat/partner-segregation`
+> **Fase atual:** Fase 1.5 / Etapa D — segregação por parceiro em consulta, atualização e exclusão (RFC-002-4/5/6) implementada e testada (RFC-002-7); suíte 100% verde (194 testes, 433 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -119,8 +119,9 @@ vai contra o combinado.
   - GetCollection de API Keys filtra as expiradas (`findActiveByProject`)
   - Master Key obrigatória para criar/editar Partners (`MasterScopeGuard`)
   - Suíte total: **72 testes, 139 assertions**
-- [ ] **Fase 1.5 / Etapa D — Segregação por parceiro** (próximo passo):
-  - Master vê tudo; chave de parceiro vê só o seu, em todos os endpoints
+- [x] **Fase 1.5 / Etapa D — Segregação por parceiro** (concluída):
+  - Master vê tudo; chave de parceiro vê/altera só o seu, em todos os endpoints
+  - Listagens (RFC-002-3), consulta (RFC-002-4), atualização (RFC-002-5) e exclusão (RFC-002-6) segregadas
   - Toca todos os providers/processors de collection e item
 - [x] **Versionamento e releases**:
   - Política `0.y.z` adotada (desenvolvimento inicial); `v1.0.0` só quando todas as fases estiverem prontas
@@ -218,6 +219,14 @@ vai contra o combinado.
   - Sem mudanças em código de produção (apenas `tests/` + kanban)
   - Suíte total: **168 testes, 369 assertions — verde**
   - Merge em `main` via PR #8; release **v0.1.8**
+- [x] **RFC-002-4/5/6/7 — Segregação por parceiro na consulta, atualização e exclusão** (PR aberto, em revisão):
+  - `GET /partners/{id}` delega a `ScopedPartnerLookup` (RFC-002-4-1)
+  - `ContractorItemProvider` usa `ScopedContractorLookup` e `ApiKeyItemProvider` valida `Project` nulo, removendo riscos de NPE
+  - `PATCH` de Partner/Project/Contractor/ApiKey/User restrito ao próprio `Partner`; `PATCH /partners/{id}` aceita a chave do próprio parceiro
+  - Novas operações `DELETE` (soft-delete) para Partner, Project, Contractor e User, com `*DeleteProcessor` e `ScopeGuard::assertCanWrite()`
+  - `DELETE /api-keys/{id}` alinhado a 403/404 (outro parceiro retorna 404)
+  - Testes: `ScopeGuardTest` (+4) e `PartnerSegregationMutationTest` (funcional); `ApiKeyApiTest` ajustado
+  - Suíte total: **194 testes, 433 assertions — verde**
 
 ## Retomando o trabalho (após desligar a máquina)
 

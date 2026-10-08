@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -16,6 +17,7 @@ use Phprise\KoenmaID\Doctrine\Type\ProjectIdType;
 use Phprise\KoenmaID\Repository\ProjectRepository;
 use Phprise\KoenmaID\State\Project\CreateProvider;
 use Phprise\KoenmaID\State\Project\ProjectCollectionProvider;
+use Phprise\KoenmaID\State\Project\ProjectDeleteProcessor;
 use Phprise\KoenmaID\State\Project\ProjectItemProvider;
 use Phprise\KoenmaID\State\Project\ProjectPatchProcessor;
 use Phprise\KoenmaID\State\Project\ProjectPostProcessor;
@@ -64,6 +66,12 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['project:patch']],
             validationContext: ['groups' => ['project:patch']],
             normalizationContext: ['groups' => ['project:get']],
+        ),
+        new Delete(
+            openapi: new OpenApiOperation(summary: 'Delete a project', description: 'Soft-deletes a project. The request must carry the master key or the security key of the owning partner.'),
+            uriTemplate: '/projects/{id}',
+            provider: ProjectItemProvider::class,
+            processor: ProjectDeleteProcessor::class,
         ),
     ],
 )]

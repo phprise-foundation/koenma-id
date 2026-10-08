@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phprise\KoenmaID\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
@@ -14,6 +15,7 @@ use Phprise\KoenmaID\Doctrine\IdGenerator\PrefixedIdGenerator;
 use Phprise\KoenmaID\Doctrine\Type\PartnerIdType;
 use Phprise\KoenmaID\Repository\PartnerRepository;
 use Phprise\KoenmaID\State\Partner\PartnerCollectionProvider;
+use Phprise\KoenmaID\State\Partner\PartnerDeleteProcessor;
 use Phprise\KoenmaID\State\Partner\PartnerItemProvider;
 use Phprise\KoenmaID\State\Partner\PartnerPatchProcessor;
 use Phprise\KoenmaID\State\Partner\PartnerPostProcessor;
@@ -58,6 +60,12 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['partner:patch']],
             validationContext: ['groups' => ['partner:patch']],
             normalizationContext: ['groups' => ['partner:get']],
+        ),
+        new Delete(
+            openapi: new OpenApiOperation(summary: 'Delete a partner', description: 'Soft-deletes a partner. The request must carry the master key or the security key of the partner itself.'),
+            uriTemplate: '/partners/{id}',
+            provider: PartnerItemProvider::class,
+            processor: PartnerDeleteProcessor::class,
         ),
     ],
 )]

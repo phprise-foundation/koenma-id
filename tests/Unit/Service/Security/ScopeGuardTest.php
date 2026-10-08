@@ -10,6 +10,8 @@ use Phprise\KoenmaID\Service\Security\SecurityScope;
 use Phprise\KoenmaID\Service\Security\SecurityScopeProvider;
 use Phprise\KoenmaID\ValueObject\PartnerId;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 final class ScopeGuardTest extends TestCase
 {
@@ -62,6 +64,43 @@ final class ScopeGuardTest extends TestCase
         $guard = $this->guard(SecurityScope::partner($this->partner(PartnerId::generate())));
 
         self::assertFalse($guard->allows($this->partner(PartnerId::generate())));
+    }
+
+    public function testAssertCanWriteAllowsTheMasterScope(): void
+    {
+        $guard = $this->guard(SecurityScope::master());
+
+        $this->expectNotToPerformAssertions();
+
+        $guard->assertCanWrite($this->partner(PartnerId::generate()), 'Partner not found.');
+    }
+
+    public function testAssertCanWriteAllowsTheOwnPartner(): void
+    {
+        $partnerId = PartnerId::generate();
+        $guard = $this->guard(SecurityScope::partner($this->partner($partnerId)));
+
+        $this->expectNotToPerformAssertions();
+
+        $guard->assertCanWrite($this->partner($partnerId), 'Partner not found.');
+    }
+
+    public function testAssertCanWriteRejectsTheAnonymousScope(): void
+    {
+        $guard = $this->guard(SecurityScope::anonymous());
+
+        $this->expectException(UnauthorizedHttpException::class);
+
+        $guard->assertCanWrite($this->partner(PartnerId::generate()), 'Partner not found.');
+    }
+
+    public function testAssertCanWriteHidesAnotherPartner(): void
+    {
+        $guard = $this->guard(SecurityScope::partner($this->partner(PartnerId::generate())));
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $guard->assertCanWrite($this->partner(PartnerId::generate()), 'Partner not found.');
     }
 
     private function guard(SecurityScope $scope): ScopeGuard

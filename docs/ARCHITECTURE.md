@@ -99,11 +99,11 @@ input/output dessas entidades foram removidos.
 
 | Recurso | Rotas |
 |---|---|
-| `Partner` | `GET/POST /partners`, `GET/PATCH /partners/{id}` |
-| `Project` | `GET/POST /partners/{partnerId}/projects`, `GET/PATCH /projects/{id}` |
-| `ApiKey` | `GET/POST /projects/{projectId}/api-keys`, `GET/PATCH /api-keys/{id}` |
-| `Contractor` | `GET/POST /partners/{partnerId}/contractors`, `GET/PATCH /contractors/{id}` |
-| `User` | `GET/POST /contractors/{contractorId}/users`, `GET/PATCH /users/{id}` |
+| `Partner` | `GET/POST /partners`, `GET/PATCH/DELETE /partners/{id}` |
+| `Project` | `GET/POST /partners/{partnerId}/projects`, `GET/PATCH/DELETE /projects/{id}` |
+| `ApiKey` | `GET/POST /projects/{projectId}/api-keys`, `GET/PATCH/DELETE /api-keys/{id}` |
+| `Contractor` | `GET/POST /partners/{partnerId}/contractors`, `GET/PATCH/DELETE /contractors/{id}` |
+| `User` | `GET/POST /contractors/{contractorId}/users`, `GET/PATCH/DELETE /users/{id}` |
 | `Token` | `POST /token/create`, `/token/refresh`, `/token/verify`, `/token/revoke` |
 
 > **Token é especial:** todas as operações são `POST` (cada uma carrega um segredo
@@ -165,7 +165,7 @@ Um repositório por entidade. `UserRepository` implementa `PasswordUpgraderInter
 | `SecurityKeyType` | enum `Master` / `Partner` / `Anonymous` |
 | `MasterSecurityKey` | Lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals` |
 | `MultiTenantAuthorizationVoter` | `Voter` Symfony (`VIEW`/`EDIT`/`DELETE`): Master Key acessa tudo; chave de parceiro restrita ao próprio `Partner`; negação retorna `false` (o `AccessDecisionManager` gera o 403) |
-| `ScopeGuard` | Decide a visibilidade de um `Partner` a partir do `SecurityScope` (`scopedPartner()` nulo = irrestrito) |
+| `ScopeGuard` | Decide a visibilidade (`allows()`) e a escrita (`assertCanWrite()`) de um `Partner` a partir do `SecurityScope`: Master (global), chave do próprio parceiro, anônimo (401 na escrita) e outro parceiro (404) |
 | `ScopedPartnerLookup` / `ScopedProjectLookup` / `ScopedContractorLookup` | Resolvem o recurso-pai respeitando o escopo; fora do escopo lançam 404, e são usados pelos `*CollectionProvider` |
 
 O header é `X-Security-Key`. A chave em texto puro só é exibida uma vez, na
@@ -178,7 +178,7 @@ chave de parceiro fica restrita ao próprio `Partner`.
 ### 4.5 `State/` — integração com API Platform
 
 - **Providers** (`ProviderInterface`): leem dados para `GET`.
-- **Processors** (`ProcessorInterface`): escrevem dados para `POST`/`PATCH`.
+- **Processors** (`ProcessorInterface`): escrevem dados para `POST`/`PATCH`/`DELETE` (soft-delete via `*DeleteProcessor`).
 
 Cada um recebe o DTO de entrada, delega ao Service/Repository e devolve o DTO de
 saída. São a "cola" entre o API Platform e o domínio.
@@ -234,7 +234,8 @@ tests/
 │   │   ├── ProjectApiTest.php
 │   │   ├── ApiKeyApiTest.php
 │   │   ├── ContractorApiTest.php
-│   │   └── UserApiTest.php
+│   │   ├── UserApiTest.php
+│   │   └── PartnerSegregationMutationTest.php
 │   └── Service/
 │       ├── SecurityKeyContextTest.php   # keyType() e exposição do Partner (KernelTestCase)
 │       └── UserRegistrarTest.php

@@ -7,11 +7,11 @@ namespace Phprise\KoenmaID\State\ApiKey;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Phprise\KoenmaID\Entity\ApiKey;
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Repository\ApiKeyRepository;
-use Phprise\KoenmaID\Service\Security\SecurityKeyContext;
+use Phprise\KoenmaID\Service\Security\ScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 /**
  * @implements ProcessorInterface<null, null>
@@ -21,7 +21,7 @@ final readonly class ApiKeyDeleteProcessor implements ProcessorInterface
     public function __construct(
         private ApiKeyRepository $apiKeys,
         private EntityManagerInterface $entityManager,
-        private SecurityKeyContext $securityKeyContext,
+        private ScopeGuard $scopeGuard,
     ) {
     }
 
@@ -49,16 +49,12 @@ final readonly class ApiKeyDeleteProcessor implements ProcessorInterface
 
     private function assertScopeOwnsApiKey(ApiKey $apiKey): void
     {
-        $scope = $this->securityKeyContext->scope();
+        $partner = $apiKey->getProject()?->getPartner();
 
-        if ($scope->isMaster()) {
-            return;
+        if (!$partner instanceof Partner) {
+            throw new NotFoundHttpException('ApiKey not found.');
         }
 
-        $partnerId = $apiKey->getProject()->getPartner()->getId();
-
-        if (null === $scope->partnerId() || !$scope->partnerId()->equals($partnerId)) {
-            throw new UnauthorizedHttpException('SecurityKey', 'Invalid security key for this API key.');
-        }
+        $this->scopeGuard->assertCanWrite($partner, 'ApiKey not found.');
     }
 }

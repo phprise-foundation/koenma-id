@@ -6,6 +6,7 @@ namespace Phprise\KoenmaID\State\Project;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use Phprise\KoenmaID\Entity\Partner;
 use Phprise\KoenmaID\Entity\Project;
 use Phprise\KoenmaID\Service\Security\ScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,9 +14,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @implements ProcessorInterface<Project, Project>
+ * @implements ProcessorInterface<Project, null>
  */
-final readonly class ProjectPatchProcessor implements ProcessorInterface
+final readonly class ProjectDeleteProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -23,18 +24,23 @@ final readonly class ProjectPatchProcessor implements ProcessorInterface
     ) {
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Project
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
         if (!$data instanceof Project) {
             throw new BadRequestHttpException('Invalid payload.');
         }
 
-        if (!$this->scopeGuard->allows($data->getPartner())) {
+        $partner = $data->getPartner();
+
+        if (!$partner instanceof Partner) {
             throw new NotFoundHttpException('Project not found.');
         }
 
+        $this->scopeGuard->assertCanWrite($partner, 'Project not found.');
+
+        $data->delete();
         $this->entityManager->flush();
 
-        return $data;
+        return null;
     }
 }
