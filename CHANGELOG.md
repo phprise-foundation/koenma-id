@@ -20,7 +20,7 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 - `ScopeGuardTest`, `ScopedPartnerLookupTest`, `ScopedProjectLookupTest`, `ScopedContractorLookupTest` (unitários)
 - `PartnerSegregationListingTest` (funcional): Master Key x chave de parceiro x 404 fora do escopo em todas as listagens
-- Suíte total: **162 testes, 359 assertions** (verde)
+- Suíte total: **165 testes, 366 assertions** (verde)
 
 ## [0.1.6] — 2026-10-08
 

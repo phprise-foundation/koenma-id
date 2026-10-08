@@ -211,7 +211,7 @@ vai contra o combinado.
   - Novos `ScopeGuard`, `ScopedPartnerLookup`, `ScopedProjectLookup` e `ScopedContractorLookup` em `Service/Security/`
   - `PartnerCollectionProvider`, `ProjectCollectionProvider`, `ContractorCollectionProvider`, `ApiKeyCollectionProvider` e `UserCollectionProvider` filtram pela chave de parceiro; fora do escopo responde 404
   - Master Key e requisições sem chave de parceiro mantêm visão irrestrita (healthcheck preservado)
-  - Suíte total: **162 testes, 359 assertions — verde**
+  - Suíte total: **165 testes, 366 assertions — verde**
 
 ## Retomando o trabalho (após desligar a máquina)
 
