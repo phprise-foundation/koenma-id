@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\User;
 use Phprise\KoenmaID\Repository\UserRepository;
+use Phprise\KoenmaID\Service\Security\ScopedContractorLookup;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -15,8 +16,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final readonly class UserItemProvider implements ProviderInterface
 {
-    public function __construct(private UserRepository $users)
-    {
+    public function __construct(
+        private UserRepository $users,
+        private ScopedContractorLookup $contractors,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?User
@@ -26,6 +29,8 @@ final readonly class UserItemProvider implements ProviderInterface
         if (!$user instanceof User || null !== $user->getDeletedAt()) {
             throw new NotFoundHttpException('User not found.');
         }
+
+        $this->contractors->requireVisible($user->getContractor()->getId());
 
         return $user;
     }

@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Phprise\KoenmaID\Entity\Contractor;
 use Phprise\KoenmaID\Repository\ContractorRepository;
+use Phprise\KoenmaID\Service\Security\ScopedPartnerLookup;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -15,8 +16,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final readonly class ContractorItemProvider implements ProviderInterface
 {
-    public function __construct(private ContractorRepository $contractors)
-    {
+    public function __construct(
+        private ContractorRepository $contractors,
+        private ScopedPartnerLookup $partners,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Contractor
@@ -26,6 +29,8 @@ final readonly class ContractorItemProvider implements ProviderInterface
         if (!$contractor instanceof Contractor || null !== $contractor->getDeletedAt()) {
             throw new NotFoundHttpException('Contractor not found.');
         }
+
+        $this->partners->requireVisible($contractor->getPartner()->getId());
 
         return $contractor;
     }
