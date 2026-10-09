@@ -7,7 +7,7 @@ namespace Phprise\KoenmaID\State\Partner;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Phprise\KoenmaID\Entity\Partner;
-use Phprise\KoenmaID\Service\Security\ScopeGuard;
+use Phprise\KoenmaID\Service\Security\MasterScopeGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -18,7 +18,7 @@ final readonly class PartnerPatchProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ScopeGuard $scopeGuard,
+        private MasterScopeGuard $masterScopeGuard,
     ) {
     }
 
@@ -28,7 +28,7 @@ final readonly class PartnerPatchProcessor implements ProcessorInterface
             throw new BadRequestHttpException('Invalid payload.');
         }
 
-        $this->scopeGuard->assertCanWrite($data, 'Partner not found.');
+        $this->masterScopeGuard->assertMaster();
         $this->entityManager->flush();
 
         return $data;

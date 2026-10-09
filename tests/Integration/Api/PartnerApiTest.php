@@ -128,4 +128,40 @@ final class PartnerApiTest extends WebTestCase
 
         return $factory->createUser($contractor, 'plain-password', 'auth');
     }
+
+    public function testCreateRejectsPartnerKeyWith403(): void
+    {
+        $factory = static::getContainer()->get(TestDataFactory::class);
+        $partner = $factory->createPartner('partner-key-403');
+        $project = $factory->createProject($partner, 'partner-key-403');
+        $plainKey = 'sk_12345678901234567890123456789012';
+        $factory->createApiKey($project, $plainKey, 'partner-key-403');
+
+        $this->client->request('POST', '/partners', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SECURITY_KEY' => $plainKey,
+        ], json_encode([
+            'name' => 'Acme Attempt',
+            'emailAddress' => 'attempt@example.com',
+            'document' => 'doc-attempt',
+        ], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testPatchRejectsPartnerKeyWith403(): void
+    {
+        $factory = static::getContainer()->get(TestDataFactory::class);
+        $partner = $factory->createPartner('partner-patch-403');
+        $project = $factory->createProject($partner, 'partner-patch-403');
+        $plainKey = 'sk_22345678901234567890123456789012';
+        $factory->createApiKey($project, $plainKey, 'partner-patch-403');
+
+        $this->client->request('PATCH', '/partners/'.$partner->getId()->toString(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_X_SECURITY_KEY' => $plainKey,
+        ], json_encode(['name' => 'Renamed Attempt'], \JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

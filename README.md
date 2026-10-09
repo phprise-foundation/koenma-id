@@ -253,8 +253,10 @@ symfony serve -d
   `SecurityKeyContext`:
   - **Master Key** (`MASTER_SECURITY_KEY`): criar, editar e excluir qualquer
     Partner/Project/Contractor/ApiKey/User.
-  - **Chave de Partner**: criar/editar/excluir recursos do próprio Partner, além
-    de `/token/create` e `/token/verify`.
+  - **Chave de Partner**: criar/editar/excluir **recursos** do próprio Partner
+    (Project/Contractor/ApiKey/User), além de `/token/create` e `/token/verify`.
+  - Criar ou editar um **Partner** (`POST`/`PATCH /partners`) é privativo da
+    Master Key; uma chave de parceiro válida recebe `403 Forbidden`.
   A segregação vale para listagem, consulta, atualização e exclusão: a chave de
   parceiro vê e altera apenas o próprio escopo (404 fora dele); a Master Key
   mantém a visão irrestrita. Exclusões (`DELETE`) exigem a Master Key ou a chave
@@ -759,7 +761,7 @@ curl -s -X POST "$BASE/token/revoke" \
 | `GET` | `/partners` | Lista os partners (chave de parceiro vê só o próprio) |
 | `GET` | `/partners/{id}` | Retorna um partner |
 | `POST` | `/partners` | Cria um partner (exige **Master Key**) |
-| `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key** ou a chave do próprio partner) |
+| `PATCH` | `/partners/{id}` | Atualiza nome ou email (exige **Master Key**) |
 | `DELETE` | `/partners/{id}` | Remove (soft-delete) um partner (exige **Master Key** ou a chave do próprio partner) |
 
 ### Projects

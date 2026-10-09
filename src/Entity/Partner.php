@@ -53,7 +53,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             normalizationContext: ['groups' => ['partner:get']],
         ),
         new Patch(
-            openapi: new OpenApiOperation(summary: 'Update a partner', description: 'Updates the name or the email address of a partner.'),
+            openapi: new OpenApiOperation(summary: 'Update a partner', description: 'Updates the name or the email address of a partner. Requires the master security key.'),
             uriTemplate: '/partners/{id}',
             provider: PartnerItemProvider::class,
             processor: PartnerPatchProcessor::class,

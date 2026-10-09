@@ -7,7 +7,7 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
-## [Unreleased]
+## [0.1.9] — 2026-10-08
 
 ### Adicionado
 
@@ -25,6 +25,26 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - `PartnerSegregationMutationTest` (funcional): isolamento multi-tenant de consulta, atualização e exclusão para Partner, Project, Contractor, ApiKey e User
 - `ApiKeyApiTest`: a deleção de API Key de outro parceiro passa a esperar 404
 - Suíte total: **194 testes, 433 assertions** (verde)
+
+## [Unreleased]
+
+### Corrigido
+
+- `MasterScopeGuard::assertMaster()` distingue **anônimo (401)** de **chave de parceiro (403)**: uma chave de parceiro válida que tenta uma operação master-only recebe `403 Forbidden` (`AccessDeniedHttpException`) em vez de `401 Unauthorized` (RFC-002-2-4-1)
+- `PATCH /partners/{id}` passa a ser **master-only**: a chave do próprio parceiro deixa de editar o Partner e recebe `403`; leitura (`GET`) e exclusão (`DELETE`) do próprio Partner seguem permitidas
+
+### Adicionado
+
+- **Kanban/RFCs migrados para GitHub Issues + Project V2**:
+  - Quadro "Phprise Kanban" na org (`phprise-foundation`, project 1) com o campo embutido `Status` (fluxo linear), a flag `Blocked` e os campos `Role` e `Worker`
+  - 58 RFCs de `docs/kanban/` migradas para issues em `phprise-foundation/koenma-id`
+  - Helper `scripts/kanban.py` (list/next/set/clear/comment/create/busy)
+  - Watchers (`scripts/*-watcher.sh`) reescritos para usar `gh` em vez de arquivos
+
+### Alterado
+
+- Roles do Maestri (`.maestri/roles/*/role.json`, `AGENTS.md` e `CLAUDE.md`) atualizados para o novo protocolo baseado em issues
+- Arquivos antigos do kanban movidos para `docs/kanban.legacy/` (histórico)
 
 ## [0.1.8] — 2026-10-08
 
