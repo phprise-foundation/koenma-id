@@ -2,7 +2,7 @@
 
 > **Atualizado em:** 2026-10-09
 > **Branch:** `main`
-> **Fase atual:** Fase 1.5 / Etapa D — segregação por parceiro em consulta, atualização e exclusão (RFC-002-4/5/6) **mergeada na main** e em **testing** (RFC-002-7); release v0.1.9; suíte 100% verde (194 testes, 433 assertions)
+> **Fase atual:** Fase 1.5 / Etapa D — segregação por parceiro em consulta, atualização e exclusão (RFC-002-4/5/6) **mergeada na main** e em **testing** (RFC-002-7); RFC-002-2-4-1 (403 master-only) **mergeada na main** e em **testing**; release v0.1.10; suíte 100% verde (188 testes, 424 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -235,10 +235,12 @@ vai contra o combinado.
   - Testes: `ScopeGuardTest` (+4) e `PartnerSegregationMutationTest` (funcional); `ApiKeyApiTest` ajustado
   - Suíte total: **194 testes, 433 assertions — verde**
   - Merge em `main` via PR #9; release **v0.1.9**
-- [x] **RFC-002-2-4-1 — 403 para chave de parceiro em operação master-only** (concluída):
+- [x] **RFC-002-2-4-1 — 403 para chave de parceiro em operação master-only** (merge em `main`; em testing):
   - `MasterScopeGuard::assertMaster()` distingue **anônimo** (`401 Unauthorized`) de **chave de parceiro** (`403 Forbidden`, via `AccessDeniedHttpException`); Master Key segue permitida
   - `PATCH /partners/{id}` passa a usar `MasterScopeGuard` (master-only): a chave do próprio parceiro recebe `403`; leitura (`GET`) e exclusão (`DELETE`) do próprio Partner continuam permitidas
   - Testes funcionais em `PartnerApiTest` (`testCreateRejectsPartnerKeyWith403`, `testPatchRejectsPartnerKeyWith403`); `PartnerSegregationMutationTest` ajustado
+  - Suíte total: **188 testes, 424 assertions — verde**
+  - Merge em `main` via PR #72; release **v0.1.10**
 
 ## Retomando o trabalho (após desligar a máquina)
 

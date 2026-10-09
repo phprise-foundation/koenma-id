@@ -28,11 +28,6 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-### Corrigido
-
-- `MasterScopeGuard::assertMaster()` distingue **anônimo (401)** de **chave de parceiro (403)**: uma chave de parceiro válida que tenta uma operação master-only recebe `403 Forbidden` (`AccessDeniedHttpException`) em vez de `401 Unauthorized` (RFC-002-2-4-1)
-- `PATCH /partners/{id}` passa a ser **master-only**: a chave do próprio parceiro deixa de editar o Partner e recebe `403`; leitura (`GET`) e exclusão (`DELETE`) do próprio Partner seguem permitidas
-
 ### Adicionado
 
 - **Kanban/RFCs migrados para GitHub Issues + Project V2**:
@@ -45,6 +40,19 @@ e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 - Roles do Maestri (`.maestri/roles/*/role.json`, `AGENTS.md` e `CLAUDE.md`) atualizados para o novo protocolo baseado em issues
 - Arquivos antigos do kanban movidos para `docs/kanban.legacy/` (histórico)
+
+## [0.1.10] — 2026-10-09
+
+### Corrigido
+
+- `MasterScopeGuard::assertMaster()` distingue **anônimo (401)** de **chave de parceiro (403)**: uma chave de parceiro válida que tenta uma operação master-only recebe `403 Forbidden` (`AccessDeniedHttpException`) em vez de `401 Unauthorized` (RFC-002-2-4-1)
+- `PATCH /partners/{id}` passa a ser **master-only**: a chave do próprio parceiro deixa de editar o Partner e recebe `403`; leitura (`GET`) e exclusão (`DELETE`) do próprio Partner seguem permitidas
+
+### Testes
+
+- `PartnerApiTest`: `testCreateRejectsPartnerKeyWith403` e `testPatchRejectsPartnerKeyWith403` (chave de parceiro em operação master-only → 403)
+- `PartnerSegregationMutationTest::testPartnerKeyCannotPatchItsOwnPartner` ajustado (200 → 403)
+- Suíte total: **188 testes, 424 assertions** (verde)
 
 ## [0.1.8] — 2026-10-08
 

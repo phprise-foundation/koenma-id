@@ -164,6 +164,7 @@ Um repositório por entidade. `UserRepository` implementa `PasswordUpgraderInter
 | `SecurityScopeProvider` | Interface (`scope(): SecurityScope`) implementada por `SecurityKeyContext` via `#[AsAlias]`; desacopla o voter da resolução concreta do escopo |
 | `SecurityKeyType` | enum `Master` / `Partner` / `Anonymous` |
 | `MasterSecurityKey` | Lê `%env(MASTER_SECURITY_KEY)%` e compara com `hash_equals` |
+| `MasterScopeGuard` | Garante operações master-only (`assertMaster()`): Master Key permite; anônimo devolve `401`; chave de parceiro devolve `403` |
 | `MultiTenantAuthorizationVoter` | `Voter` Symfony (`VIEW`/`EDIT`/`DELETE`): Master Key acessa tudo; chave de parceiro restrita ao próprio `Partner`; negação retorna `false` (o `AccessDecisionManager` gera o 403) |
 | `ScopeGuard` | Decide a visibilidade (`allows()`) e a escrita (`assertCanWrite()`) de um `Partner` a partir do `SecurityScope`: Master (global), chave do próprio parceiro, anônimo (401 na escrita) e outro parceiro (404) |
 | `ScopedPartnerLookup` / `ScopedProjectLookup` / `ScopedContractorLookup` | Resolvem o recurso-pai respeitando o escopo; fora do escopo lançam 404, e são usados pelos `*CollectionProvider` |
