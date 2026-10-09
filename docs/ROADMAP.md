@@ -31,6 +31,7 @@
 - [x] Filtro de API Keys **não expiradas** no GetCollection
 - [x] `/token/verify` valida também a chave de segurança (mesmo Partner, não expirada)
 - [x] **Master Key** (variável de ambiente) para criar/editar Partners
+  - [x] RFC-002-2-4-1: chave de parceiro válida em operação master-only retorna `403` (anônimo segue `401`)
 - [x] Segregação por parceiro em todos os endpoints (Master vê tudo; chave de parceiro vê só o seu) — **listagens** (RFC-002-3), **consulta** (RFC-002-4), **atualização** (RFC-002-5) e **exclusão** (RFC-002-6) concluídas; testes de isolamento (RFC-002-7) verdes
 
 ---

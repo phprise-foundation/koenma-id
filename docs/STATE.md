@@ -1,8 +1,8 @@
 # Estado do Projeto — Koenma ID
 
-> **Atualizado em:** 2026-10-08
-> **Branch:** `feat/partner-segregation`
-> **Fase atual:** Fase 1.5 / Etapa D — segregação por parceiro em consulta, atualização e exclusão (RFC-002-4/5/6) implementada e testada (RFC-002-7); suíte 100% verde (194 testes, 433 assertions)
+> **Atualizado em:** 2026-10-09
+> **Branch:** `main`
+> **Fase atual:** Fase 1.5 / Etapa D — segregação por parceiro em consulta, atualização e exclusão (RFC-002-4/5/6) **mergeada na main** e em **testing** (RFC-002-7); release v0.1.9; suíte 100% verde (194 testes, 433 assertions)
 
 Este arquivo é o **ponto de entrada** para qualquer agente ou pessoa que retome o
 projeto. Leia-o antes de qualquer coisa. Ele diz onde paramos, o que foi decidido
@@ -71,11 +71,18 @@ vai contra o combinado.
 | **Autenticação desabilitada por enquanto** | Firewall `main` com `security: false` e `access_control` `PUBLIC_ACCESS`; reativar quando definirmos permissões de API Key (ver dívida técnica) |
 | **Sem controllers; tudo via `ApiResource`** | Mantém OpenAPI/docs alinhados, respeita formatos do YAML, filtros/paginação/validação consistentes. `TokenController` foi removido e migrado para `TokenResource` + State processors |
 | **`find()` funciona com ID prefixado** | `AbstractPrefixedIdType::convertToDatabaseValue` aceita string prefixada e converte para ValueObject; evita `findById()` em cada repositório (presente e futuro) |
+| **RFCs e Kanban no GitHub (Issues + Project V2)** | Quadro "Phprise Kanban" (org, projects/1) com o campo embutido `Status` (to-do→qa-refinement→coding→reviewing→testing→done, fluxo linear), a flag `Blocked` e os campos `Role`/`Worker`; cada RFC/tarefa é uma issue no repo; agentes interagem via `gh` + `scripts/kanban.py`; arquivos `docs/kanban/` migrados e arquivados em `docs/kanban.legacy/` |
 
 ---
 
 ## 4. Concluído
 
+- [x] **Migração do Kanban/RFCs para GitHub Issues + Project V2** (concluída):
+  - Quadro org "Phprise Kanban" (https://github.com/orgs/phprise-foundation/projects/1) com o campo embutido `Status` (to-do→qa-refinement→coding→reviewing→testing→done, fluxo linear, itens não voltam), a flag `Blocked` (booleana, independente do Status) e os campos `Role` (product-owner/tech-lead/qa/coder) e `Worker`
+  - 58 RFCs de `docs/kanban/` migradas para issues em `phprise-foundation/koenma-id` (frontmatter → campos; `comments` → comentários de issue)
+  - Helper `scripts/kanban.py` (list/next/set/clear/comment/create/busy) e watchers (`scripts/*-watcher.sh`) reescritos para usar `gh`
+  - Roles do Maestri (`.maestri/roles/*/role.json` e `AGENTS.md`/`CLAUDE.md`) atualizados para o novo protocolo
+  - Arquivos antigos arquivados em `docs/kanban.legacy/`
 - [x] Symfony 8.1.6, Postgres 16, Lexik JWT, MakerBundle, test-pack
 - [x] Chaves JWT geradas em `config/jwt/`
 - [x] Postgres em `127.0.0.1:5432` (porta fixa no `compose.override.yaml`)
@@ -219,14 +226,19 @@ vai contra o combinado.
   - Sem mudanças em código de produção (apenas `tests/` + kanban)
   - Suíte total: **168 testes, 369 assertions — verde**
   - Merge em `main` via PR #8; release **v0.1.8**
-- [x] **RFC-002-4/5/6/7 — Segregação por parceiro na consulta, atualização e exclusão** (PR aberto, em revisão):
+- [x] **RFC-002-4/5/6/7 — Segregação por parceiro na consulta, atualização e exclusão** (merge em `main`; em testing):
   - `GET /partners/{id}` delega a `ScopedPartnerLookup` (RFC-002-4-1)
   - `ContractorItemProvider` usa `ScopedContractorLookup` e `ApiKeyItemProvider` valida `Project` nulo, removendo riscos de NPE
-  - `PATCH` de Partner/Project/Contractor/ApiKey/User restrito ao próprio `Partner`; `PATCH /partners/{id}` aceita a chave do próprio parceiro
+  - `PATCH` de Project/Contractor/ApiKey/User restrito ao próprio `Partner`; `PATCH /partners/{id}` é master-only (403 para chave de parceiro)
   - Novas operações `DELETE` (soft-delete) para Partner, Project, Contractor e User, com `*DeleteProcessor` e `ScopeGuard::assertCanWrite()`
   - `DELETE /api-keys/{id}` alinhado a 403/404 (outro parceiro retorna 404)
   - Testes: `ScopeGuardTest` (+4) e `PartnerSegregationMutationTest` (funcional); `ApiKeyApiTest` ajustado
   - Suíte total: **194 testes, 433 assertions — verde**
+  - Merge em `main` via PR #9; release **v0.1.9**
+- [x] **RFC-002-2-4-1 — 403 para chave de parceiro em operação master-only** (concluída):
+  - `MasterScopeGuard::assertMaster()` distingue **anônimo** (`401 Unauthorized`) de **chave de parceiro** (`403 Forbidden`, via `AccessDeniedHttpException`); Master Key segue permitida
+  - `PATCH /partners/{id}` passa a usar `MasterScopeGuard` (master-only): a chave do próprio parceiro recebe `403`; leitura (`GET`) e exclusão (`DELETE`) do próprio Partner continuam permitidas
+  - Testes funcionais em `PartnerApiTest` (`testCreateRejectsPartnerKeyWith403`, `testPatchRejectsPartnerKeyWith403`); `PartnerSegregationMutationTest` ajustado
 
 ## Retomando o trabalho (após desligar a máquina)
 

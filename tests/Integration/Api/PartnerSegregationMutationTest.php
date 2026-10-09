@@ -64,14 +64,13 @@ final class PartnerSegregationMutationTest extends WebTestCase
         self::assertSame('Master Renamed', $this->decode()['name']);
     }
 
-    public function testPartnerKeyPatchesItsOwnPartner(): void
+    public function testPartnerKeyCannotPatchItsOwnPartner(): void
     {
         $partner = $this->seededPartner('m-own-pat-par');
 
         $this->request('PATCH', '/partners/'.$partner->getId()->toString(), $this->securityKey('m-own-pat-par'), ['name' => 'Own Renamed']);
 
-        self::assertResponseIsSuccessful();
-        self::assertSame('Own Renamed', $this->decode()['name']);
+        self::assertResponseStatusCodeSame(403);
     }
 
     public function testPartnerKeyCannotPatchAnotherPartner(): void
